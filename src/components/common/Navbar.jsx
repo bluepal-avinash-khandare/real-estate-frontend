@@ -266,23 +266,23 @@ const Navbar = () => {
               </div>
             ) : (
               <div className="hidden md:flex items-center space-x-3">
-              <Link
-  to="/login"
-  className="inline-block px-6 py-2 border border-gray-300 text-gray-700 rounded-xl font-medium
+                <Link
+                  to="/login"
+                  className="inline-block px-6 py-2 border border-gray-300 text-gray-700 rounded-xl font-medium
              hover:bg-gradient-to-r hover:from-[#16A085] hover:to-[#2C3E50] hover:text-white
              hover:shadow-md transition-all duration-300"
->
-  Log in
-</Link>
+                >
+                  Log in
+                </Link>
 
-<Link
-  to="/register"
-  className="inline-block px-6 py-2 border border-gray-300 text-gray-700 rounded-xl font-medium
+                <Link
+                  to="/register"
+                  className="inline-block px-6 py-2 border border-gray-300 text-gray-700 rounded-xl font-medium
              hover:bg-gradient-to-r hover:from-[#16A085] hover:to-[#2C3E50] hover:text-white
              hover:shadow-md transition-all duration-300"
->
-  Sign up
-</Link>
+                >
+                  Sign up
+                </Link>
 
 
               </div>
@@ -365,7 +365,7 @@ const Navbar = () => {
               {!user && (
                 <div className="flex flex-col space-y-3 pt-2">
                   <Link to="/login" className="text-center py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors font-medium">
-                    Login 
+                    Login
                   </Link>
                   <Link to="/register">
                     <CustomButton className="w-full bg-gradient-to-r from-[#16A085] to-[#2C3E50] hover:shadow-md text-white py-3 rounded-xl font-medium transition-all duration-300 ">
