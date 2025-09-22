@@ -4,7 +4,16 @@ import { registerSchema } from '../../utils/validationSchemas';
 import CustomButton from '../common/CustomButton';
 
 const RegisterForm = ({ onSubmit }) => (
-  <Formik initialValues={{ name: '', email: '', password: '', role: '' }} validationSchema={registerSchema} onSubmit={onSubmit}>
+  <Formik 
+    initialValues={{ 
+      name: '', 
+      email: '', 
+      password: '', 
+      role: 'CUSTOMER' // Set default role to CUSTOMER
+    }} 
+    validationSchema={registerSchema} 
+    onSubmit={onSubmit}
+  >
     {({ isSubmitting }) => (
       <Form className="space-y-6">
         {/* Name Field */}
@@ -71,38 +80,6 @@ const RegisterForm = ({ onSubmit }) => (
             />
           </div>
           <ErrorMessage name="password" component="div" className="mt-1 text-sm text-red-600" />
-        </div>
-
-        {/* Role Field */}
-        <div>
-          <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
-            Account Type
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-            <Field
-              as="select"
-              id="role"
-              name="role"
-              className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#16A085] focus:border-[#16A085] transition-colors appearance-none"
-            >
-              <option value="">Select your account type</option>
-              <option value="CUSTOMER">Customer - Looking for properties</option>
-              <option value="AGENT">Agent - Listing properties</option>
-              <option value="ADMIN">Admin - Platform management</option>
-            </Field>
-            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-          </div>
-          <ErrorMessage name="role" component="div" className="mt-1 text-sm text-red-600" />
         </div>
 
         {/* Terms and Conditions */}
