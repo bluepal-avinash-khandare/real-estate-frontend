@@ -68,7 +68,7 @@ const LoginForm = ({ onSubmit }) => (
             <a href="#" className="font-medium text-[#16A085] hover:text-[#2C3E50] transition-colors">
               Forgot your password?
             </a>
-          </div>
+          </div> 
         </div>
 
         {/* Submit Button */}
