@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import RegisterForm from '../../components/forms/RegisterForm';
-import { register } from '../../services/authService';
+import { register, login } from '../../services/authService';
+import { AuthContext } from '../../contexts/AuthContext';
 
 const Register = () => {
   const navigate = useNavigate();
+  const { signIn } = useContext(AuthContext);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [error, setError] = useState(null); // State for server-side errors
-  const [success, setSuccess] = useState(null); // State for success message
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
   // Property images for the carousel
   const propertyImages = [
@@ -22,11 +24,6 @@ const Register = () => {
       description: "Breathtaking villas with panoramic views of azure coastlines"
     },
     {
-      url: "https://media.istockphoto.com/id/2112749005/photo/modern-contemporary-style-small-wooden-terrace-in-lush-garden-with-house-interior-background.jpg?s=612x612&w=0&k=20&c=rtiD90a0nA3UpHfGsL1GnVG19GjIZd8H762MTgGcJug=",
-      title: "Secluded Sanctuary",
-      description: "Private retreats surrounded by lush landscapes and serene gardens"
-    },
-    {
       url: "https://media.istockphoto.com/id/1179737018/photo/were-in-the-house-mom-and-dad-are-imitating-a-roof-of-the-house-with-their-hands-while-their.jpg?s=612x612&w=0&k=20&c=UxnX0VNBl1AiFb3pxVZPn3YFApQUhK89DKT_PEvMUZg=",
       title: "Family Haven",
       description: "Spacious homes designed for creating lifelong memories with loved ones"
@@ -35,6 +32,11 @@ const Register = () => {
       url: "https://media.istockphoto.com/id/2148850507/photo/contemporary-urban-apartments-with-rooftop-greenery.jpg?s=612x612&w=0&k=20&c=N5JEzh21OtER3f3IHdxf-N8kWUJVll1eT4dmXdeRwPU=",
       title: "Urban Oasis",
       description: "Modern city living with rooftop gardens and sustainable design"
+    },
+    {
+      url: "https://media.istockphoto.com/id/2112749005/photo/modern-contemporary-style-small-wooden-terrace-in-lush-garden-with-house-interior-background.jpg?s=612x612&w=0&k=20&c=rtiD90a0nA3UpHfGsL1GnVG19GjIZd8H762MTgGcJug=",
+      title: "Secluded Sanctuary",
+      description: "Private retreats surrounded by lush landscapes and serene gardens"
     }
   ];
 
@@ -46,33 +48,160 @@ const Register = () => {
     return () => clearInterval(interval);
   }, [propertyImages.length]);
 
-  const handleSubmit = async (values) => {
-    try {
-      setError(null); // Clear previous errors
-      setSuccess(null); // Clear previous success message
-      await register(values); // Call the register function from authService
-      setSuccess('Registration successful! Redirecting to login...');
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000); // Delay navigation to show success message
-    } catch (error) {
-      console.error('Registration error:', error);
-      // Handle specific server-side errors
-      if (error.response && error.response.data) {
-        const { message } = error.response.data;
-        if (message.includes('email already exists') || message.includes('email is already registered')) {
-          setError('This email is already registered. Please use a different email.');
-        } else if (message.includes('phone already exists') || message.includes('phone number is already registered')) {
+// const handleSubmit = async (values) => {
+//   try {
+//     setError(null);
+//     setSuccess(null);
+    
+//     console.log("Form values:", values);
+    
+//     // Prepare the data for the API call - exclude 'terms' field
+//     const registrationData = {
+//       name: values.name,
+//       email: values.email,
+//       password: values.password,
+//       phone: values.phone,
+//       role: values.role
+//       // Note: We're not sending the 'terms' field as it's not needed by the backend
+//     };
+    
+//     console.log("Submitting registration with:", registrationData);
+    
+//     // Step 1: Register the user
+//     const registerResponse = await register(registrationData);
+//     console.log("Registration response:", registerResponse);
+    
+//     // Step 2: Automatically log the user in after registration
+//     const loginData = {
+//       usernameOrEmail: values.email, // Use email for login
+//       password: values.password
+//     };
+    
+//     console.log("Attempting login with:", loginData);
+//     const authResponse = await login(loginData);
+//     console.log("Login response:", authResponse);
+    
+//     // Step 3: Use the signIn function from AuthContext to log in and set state
+//     await signIn(loginData);
+//     console.log("User signed in, data should be in localStorage");
+    
+//     setSuccess('Registration successful! Redirecting to dashboard...');
+    
+//     // Step 4: Redirect to dashboard or home page after a short delay
+//     setTimeout(() => {
+//       navigate('/dashboard');
+//     }, 2000);
+    
+//   } catch (error) {
+//     console.error('Registration error:', error);
+    
+//     // Enhanced error handling
+//     if (error.response) {
+//       // The request was made and the server responded with a status code
+//       console.error('Error data:', error.response.data);
+//       console.error('Error status:', error.response.status);
+      
+//       if (error.response.status === 400) {
+//         // Handle 400 Bad Request specifically
+//         const errorData = error.response.data;
+//         const errorMessage = errorData.message || errorData.error || 'Invalid registration data';
+        
+//         // Check for specific error messages
+//         if (errorMessage.includes('Email is already used') || 
+//             errorMessage.includes('email already exists') || 
+//             errorMessage.includes('email is already registered')) {
+//           setError('This email is already registered. Please use a different email or try logging in.');
+//         } else if (errorMessage.includes('Phone is already used') || 
+//                   errorMessage.includes('phone already exists')) {
+//           setError('This phone number is already registered. Please use a different number.');
+//         } else {
+//           setError(errorMessage);
+//         }
+//       } else {
+//         // Handle other HTTP errors
+//         setError(error.response.data.message || error.response.data.error || 'An error occurred during registration. Please try again.');
+//       }
+//     } else if (error.request) {
+//       // The request was made but no response was received
+//       console.error('Error request:', error.request);
+//       setError('No response from server. Please check your internet connection.');
+//     } else {
+//       // Something happened in setting up the request that triggered an Error
+//       console.error('Error message:', error.message);
+//       setError('An error occurred during registration. Please try again.');
+//     }
+//   }
+// };
+const handleSubmit = async (values) => {
+  try {
+    setError(null);
+    setSuccess(null);
+    
+    console.log("Form values:", values);
+    
+    // Prepare the data for the API call - exclude 'terms' field
+    const registrationData = {
+      name: values.name,
+      email: values.email,
+      password: values.password,
+      phone: values.phone,
+      role: values.role
+    };
+    
+    console.log("Submitting registration with:", registrationData);
+    
+    // Step 1: Register the user
+    const registerResponse = await register(registrationData);
+    console.log("Registration response:", registerResponse);
+    
+    // Step 2: Show success message and redirect to login
+    setSuccess('Registration successful! Please log in with your new account.');
+    
+    // Step 3: Redirect to login page after a short delay
+    setTimeout(() => {
+      navigate('/login');
+    }, 2000);
+    
+  } catch (error) {
+    console.error('Registration error:', error);
+    
+    // Enhanced error handling
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      console.error('Error data:', error.response.data);
+      console.error('Error status:', error.response.status);
+      
+      if (error.response.status === 400) {
+        // Handle 400 Bad Request specifically
+        const errorData = error.response.data;
+        const errorMessage = errorData.message || errorData.error || 'Invalid registration data';
+        
+        // Check for specific error messages
+        if (errorMessage.includes('Email is already used') || 
+            errorMessage.includes('email already exists') || 
+            errorMessage.includes('email is already registered')) {
+          setError('This email is already registered. Please use a different email or try logging in.');
+        } else if (errorMessage.includes('Phone is already used') || 
+                  errorMessage.includes('phone already exists')) {
           setError('This phone number is already registered. Please use a different number.');
         } else {
-          setError(message || 'An error occurred during registration. Please try again.');
+          setError(errorMessage);
         }
       } else {
-        setError('An error occurred during registration. Please try again.');
+        // Handle other HTTP errors
+        setError(error.response.data.message || error.response.data.error || 'An error occurred during registration. Please try again.');
       }
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error('Error request:', error.request);
+      setError('No response from server. Please check your internet connection.');
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      console.error('Error message:', error.message);
+      setError('An error occurred during registration. Please try again.');
     }
-  };
-
+  }
+};
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
       {/* Left Side - Property Gallery Carousel */}
