@@ -226,23 +226,38 @@ const Sidebar = () => {
   const { user } = useContext(AuthContext);
   const { isVisible, setIsVisible, isExpanded, setIsExpanded, isMobile, toggleSidebar, toggleExpand } = useSidebar();
   const sidebarRef = useRef(null);
+  const overlayRef = useRef(null);
 
   // Handle clicks outside the sidebar
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target) && isVisible) {
-        setIsVisible(false);
+      // Check if sidebar is visible
+      if (!isVisible) return;
+      
+      // Check if click is on sidebar or its children
+      if (sidebarRef.current && sidebarRef.current.contains(event.target)) {
+        return;
       }
+      
+      // Check if click is on the overlay (for mobile)
+      if (overlayRef.current && overlayRef.current.contains(event.target)) {
+        return;
+      }
+      
+      // If we get here, the click was outside both sidebar and overlay
+      setIsVisible(false);
     };
 
-    // Add event listener when sidebar is visible
-    if (isVisible) {
+    // Add event listener with a slight delay to avoid immediate closing
+    const timer = setTimeout(() => {
       document.addEventListener('mousedown', handleClickOutside);
-    }
+      document.addEventListener('touchstart', handleClickOutside);
+    }, 100);
 
-    // Cleanup event listener
     return () => {
+      clearTimeout(timer);
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [isVisible, setIsVisible]);
 
@@ -307,6 +322,7 @@ const Sidebar = () => {
       {/* Overlay when sidebar is visible on mobile */}
       {isVisible && isMobile && (
         <div 
+          ref={overlayRef}
           className="fixed inset-0 bg-black bg-opacity-50 z-30"
           onClick={() => setIsVisible(false)}
         ></div>
