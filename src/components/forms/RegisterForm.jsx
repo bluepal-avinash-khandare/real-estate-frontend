@@ -3,18 +3,30 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { registerSchema } from '../../utils/validationSchemas';
 import CustomButton from '../common/CustomButton';
 
+// Phone input handler to limit to 10 digits and only numbers
+const handlePhoneChange = (e, formikHelpers) => {
+  const value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+  if (value.length <= 10) {
+    formikHelpers.setFieldValue('phone', value);
+  }
+};
+
 const RegisterForm = ({ onSubmit }) => (
   <Formik 
     initialValues={{ 
       name: '', 
       email: '', 
       password: '', 
-      role: 'CUSTOMER' // Set default role to CUSTOMER
+      phone: '', 
+      role: 'CUSTOMER',
+      terms: false
     }} 
-    validationSchema={registerSchema} 
+    validationSchema={registerSchema}
+    validateOnChange={true}
+    validateOnBlur={true}
     onSubmit={onSubmit}
   >
-    {({ isSubmitting }) => (
+    {({ isSubmitting, setFieldValue, errors, touched }) => (
       <Form className="space-y-6">
         {/* Name Field */}
         <div>
@@ -32,7 +44,11 @@ const RegisterForm = ({ onSubmit }) => (
               name="name"
               type="text"
               placeholder="John Doe"
-              className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#16A085] focus:border-[#16A085] transition-colors"
+              className={`block w-full pl-10 pr-3 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#16A085] focus:border-[#16A085] transition-colors ${
+                errors.name && touched.name 
+                  ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                  : 'border-gray-300'
+              }`}
             />
           </div>
           <ErrorMessage name="name" component="div" className="mt-1 text-sm text-red-600" />
@@ -54,7 +70,11 @@ const RegisterForm = ({ onSubmit }) => (
               name="email"
               type="email"
               placeholder="you@example.com"
-              className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#16A085] focus:border-[#16A085] transition-colors"
+              className={`block w-full pl-10 pr-3 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#16A085] focus:border-[#16A085] transition-colors ${
+                errors.email && touched.email 
+                  ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                  : 'border-gray-300'
+              }`}
             />
           </div>
           <ErrorMessage name="email" component="div" className="mt-1 text-sm text-red-600" />
@@ -76,20 +96,55 @@ const RegisterForm = ({ onSubmit }) => (
               name="password"
               type="password"
               placeholder="••••••••"
-              className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#16A085] focus:border-[#16A085] transition-colors"
+              className={`block w-full pl-10 pr-3 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#16A085] focus:border-[#16A085] transition-colors ${
+                errors.password && touched.password 
+                  ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                  : 'border-gray-300'
+              }`}
             />
           </div>
           <ErrorMessage name="password" component="div" className="mt-1 text-sm text-red-600" />
         </div>
 
+        {/* Phone Field */}
+        <div>
+          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+            Phone Number
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none">
+              <svg className="h-5 w-5 text-gray-400 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+              </svg>
+              <span className="pl-2 text-gray-400">+91</span>
+            </div>
+            <Field
+              id="phone"
+              name="phone"
+              type="tel"
+              placeholder="9876543210"
+              maxLength="10"
+              onChange={(e) => handlePhoneChange(e, { setFieldValue })}
+              className={`block w-full pl-20 pr-3 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#16A085] focus:border-[#16A085] transition-colors ${
+                errors.phone && touched.phone 
+                  ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                  : 'border-gray-300'
+              }`}
+            />
+          </div>
+          <ErrorMessage name="phone" component="div" className="mt-1 text-sm text-red-600" />
+        </div>
+
         {/* Terms and Conditions */}
         <div className="flex items-start">
           <div className="flex items-center h-5">
-            <input
+            <Field
               id="terms"
               name="terms"
               type="checkbox"
-              className="h-4 w-4 text-[#16A085] focus:ring-[#16A085] border-gray-300 rounded"
+              className={`h-4 w-4 text-[#16A085] focus:ring-[#16A085] border rounded ${
+                errors.terms && touched.terms ? 'border-red-300' : 'border-gray-300'
+              }`}
             />
           </div>
           <div className="ml-3 text-sm">
@@ -104,6 +159,7 @@ const RegisterForm = ({ onSubmit }) => (
               </a>
             </label>
           </div>
+          <ErrorMessage name="terms" component="div" className="mt-1 text-sm text-red-600" />
         </div>
 
         {/* Submit Button */}
