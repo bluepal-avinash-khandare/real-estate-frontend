@@ -43,3 +43,10 @@ export const generateUsersPdf = async () => {
   const response = await api.get('/users/report/pdf', { responseType: 'blob' });
   return response.data;
 };
+
+
+// New function to get current user profile using JWT
+export const getUserProfile = async () => {
+  const response = await api.get('/user/profile');
+  return response.data;
+};
