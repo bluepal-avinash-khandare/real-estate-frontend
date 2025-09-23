@@ -175,7 +175,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen">
-      <Header title="Home" />
+      {/* <Header title="Home" /> */}
       
       {/* Hero Section with Carousel */}
       <section className="relative h-screen overflow-hidden">
