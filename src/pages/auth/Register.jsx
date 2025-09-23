@@ -6,6 +6,8 @@ import { register } from '../../services/authService';
 const Register = () => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [error, setError] = useState(null); // State for server-side errors
+  const [success, setSuccess] = useState(null); // State for success message
 
   // Property images for the carousel
   const propertyImages = [
@@ -46,10 +48,28 @@ const Register = () => {
 
   const handleSubmit = async (values) => {
     try {
-      await register(values);
-      navigate('/login');
+      setError(null); // Clear previous errors
+      setSuccess(null); // Clear previous success message
+      await register(values); // Call the register function from authService
+      setSuccess('Registration successful! Redirecting to login...');
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000); // Delay navigation to show success message
     } catch (error) {
-      console.error(error);
+      console.error('Registration error:', error);
+      // Handle specific server-side errors
+      if (error.response && error.response.data) {
+        const { message } = error.response.data;
+        if (message.includes('email already exists') || message.includes('email is already registered')) {
+          setError('This email is already registered. Please use a different email.');
+        } else if (message.includes('phone already exists') || message.includes('phone number is already registered')) {
+          setError('This phone number is already registered. Please use a different number.');
+        } else {
+          setError(message || 'An error occurred during registration. Please try again.');
+        }
+      } else {
+        setError('An error occurred during registration. Please try again.');
+      }
     }
   };
 
@@ -144,6 +164,18 @@ const Register = () => {
             <h2 className="text-3xl font-bold text-gray-800 mb-2">Create Account</h2>
             <p className="text-gray-600">Join us to find your dream property</p>
           </div>
+
+          {/* Display Success or Error Messages */}
+          {success && (
+            <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-lg text-center">
+              {success}
+            </div>
+          )}
+          {error && (
+            <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg text-center">
+              {error}
+            </div>
+          )}
 
           {/* Register Form */}
           <div className="bg-white rounded-2xl shadow-xl p-8 mb-6 border border-gray-100">
