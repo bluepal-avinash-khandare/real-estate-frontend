@@ -392,6 +392,7 @@ const Login = () => {
         </button>
       </div>
 
+
       {/* Right Side - Login Form */}
       <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-12 bg-white">
         <div className="w-full max-w-md">
