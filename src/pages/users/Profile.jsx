@@ -118,12 +118,7 @@ const Profile = () => {
                   type="file" 
                   className="hidden" 
                   onChange={handleImageUpload}
-                  accept="image/jpeg,image/png"
-<<<<<<< HEAD
-=======
-
->>>>>>> d0fbf5e15aa4a8ca3a29b042469a81ea19cb4419
-                />
+                  accept="image/jpeg,image/png"/>
               </div>
             </div>
           </div>
