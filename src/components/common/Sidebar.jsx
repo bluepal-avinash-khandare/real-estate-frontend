@@ -278,6 +278,7 @@
 
 // export default Sidebar;
 
+// Sidebar.js
 import React, { useContext, useRef, useEffect, useState } from 'react';
 import { AuthContext } from '../../contexts/AuthContext';
 import { useSidebar } from '../../contexts/SidebarContext';
@@ -319,23 +320,6 @@ const Sidebar = () => {
       document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [isVisible, setIsVisible]);
-
-  // Prevent body scroll when sidebar is open
-  useEffect(() => {
-    if (isVisible) {
-      document.body.style.overflow = 'hidden';
-      // Add padding to body to prevent layout shift
-      document.body.style.paddingRight = '0px'; // Adjust if needed
-    } else {
-      document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
-    }
-
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
-    };
-  }, [isVisible]);
 
   if (!user) return null;
 
@@ -407,13 +391,11 @@ const Sidebar = () => {
         </div>
       </aside>
 
-      {/* Premium Overlay when sidebar is visible */}
-      {isVisible && (
+      {/* Premium Overlay when sidebar is visible on mobile */}
+      {isVisible && isMobile && (
         <div 
           ref={overlayRef}
-          className={`fixed inset-0 z-30 transition-opacity duration-300 ${
-            isMobile ? 'bg-black bg-opacity-70' : 'bg-black bg-opacity-30'
-          }`}
+          className="fixed inset-0 bg-black bg-opacity-70 z-30 backdrop-blur-sm"
           onClick={() => setIsVisible(false)}
         ></div>
       )}
