@@ -28,6 +28,7 @@ api.interceptors.request.use(
   }
 );
 
+
 api.interceptors.response.use(
   (response) => {
     // Log the response details
