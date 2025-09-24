@@ -55,6 +55,7 @@ export const uploadProfileImage = async (file) => {
   }
 };
 
+
 export const generateUsersPdf = async () => {
   const response = await api.get('/users/report/pdf', { responseType: 'blob' });
   return response.data;

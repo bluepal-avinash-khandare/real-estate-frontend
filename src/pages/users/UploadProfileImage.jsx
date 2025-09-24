@@ -42,6 +42,7 @@ const UploadProfileImage = ({ onUploadSuccess }) => {
       )}
     </Formik>
   );
+  
 };
 
 export default UploadProfileImage;
