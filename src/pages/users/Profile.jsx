@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../../contexts/AuthContext';
 import ProfileUpdateForm from '../../components/forms/ProfileUpdateForm';
-import UploadProfileImage from '../users/UploadProfileImage';
-import { updateUser, getUserProfileImage, getUserProfile } from '../../services/userService';
+import { updateUser, getUserProfileImage, getUserProfile, uploadProfileImage } from '../../services/userService';
 import { toast } from 'react-toastify';
 
 const Profile = () => {
@@ -11,6 +10,7 @@ const Profile = () => {
   const [profileImage, setProfileImage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -18,16 +18,14 @@ const Profile = () => {
       
       try {
         setLoading(true);
-        // Fetch profile data using the new endpoint
         const profileData = await getUserProfile();
         setUserProfile(profileData);
         
-        // Fetch profile image
         try {
-          const imageBlob = await getUserProfileImage(user.id);
-          const imageUrl = URL.createObjectURL(imageBlob);
-          setProfileImage(imageUrl);
+          const imageUrl = await getUserProfileImage(); // No user.id
+          setProfileImage(imageUrl || 'https://via.placeholder.com/150');
         } catch (error) {
+          console.error('Failed to load profile image:', error);
           setProfileImage('https://via.placeholder.com/150');
         }
       } catch (error) {
@@ -52,10 +50,24 @@ const Profile = () => {
     }
   };
 
-  const handleImageUploadSuccess = (file) => {
-    const imageUrl = URL.createObjectURL(file);
-    setProfileImage(imageUrl);
-    toast.success('Image updated');
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) {
+      toast.error('No file selected');
+      return;
+    }
+    try {
+      setUploading(true);
+      await uploadProfileImage(file); // No user.id
+      const imageUrl = await getUserProfileImage(); // Fetch updated URL
+      setProfileImage(imageUrl || 'https://via.placeholder.com/150');
+      toast.success('Image updated');
+    } catch (error) {
+      console.error('Upload failed:', error.response?.data || error.message);
+      toast.error('Upload failed');
+    } finally {
+      setUploading(false);
+    }
   };
 
   if (!user) {
@@ -78,7 +90,6 @@ const Profile = () => {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          {/* Profile Header */}
           <div className="bg-gradient-to-r from-[#16A085] to-[#2C3E50] h-48 relative">
             <div className="absolute -bottom-16 left-8">
               <div className="relative group">
@@ -90,17 +101,27 @@ const Profile = () => {
                 <button 
                   onClick={() => document.getElementById('image-upload').click()}
                   className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  disabled={uploading}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
+                  {uploading ? (
+                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-white"></div>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  )}
                 </button>
+                <input 
+                  id="image-upload"
+                  type="file" 
+                  className="hidden" 
+                  onChange={handleImageUpload}
+                  accept="image/jpeg,image/png"
+                />
               </div>
             </div>
           </div>
-
-          {/* Profile Content */}
           <div className="pt-20 px-8 pb-8">
             <div className="flex justify-between items-start">
               <div>
@@ -120,8 +141,6 @@ const Profile = () => {
                 Edit Profile
               </button>
             </div>
-
-            {/* Profile Information */}
             <div className="mt-8 bg-gray-50 p-6 rounded-lg">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">Profile Information</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -143,13 +162,9 @@ const Profile = () => {
                 </div>
               </div>
             </div>
-
-         
           </div>
         </div>
       </div>
-
-      {/* Edit Modal */}
       {isEditModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
