@@ -13,27 +13,61 @@ export const getAllUsers = async (params) => {
 };
 
 
+// export const updateUser = async (id, data) => {
+//   // Validate id before making the request
+//   if (!id || id === 'undefined') {
+//     throw new Error('Invalid user ID');
+//   }
+  
+//   // Only send fields that have values (partial update)
+//   const updateData = {};
+//   Object.keys(data).forEach(key => {
+//     if (data[key] !== undefined && data[key] !== null && data[key] !== '') {
+//       updateData[key] = data[key];
+//     }
+//   });
+  
+//   // If no valid data to update, throw error
+//   if (Object.keys(updateData).length === 0) {
+//     throw new Error('No valid data to update');
+//   }
+  
+//   const response = await api.put(`/users/${id}`, updateData);
+//   return response.data;
+// };
+
 export const updateUser = async (id, data) => {
   // Validate id before making the request
   if (!id || id === 'undefined') {
     throw new Error('Invalid user ID');
   }
   
+  console.log('Updating user with data:', data); // Debug log
+  
   // Only send fields that have values (partial update)
   const updateData = {};
   Object.keys(data).forEach(key => {
-    if (data[key] !== undefined && data[key] !== null && data[key] !== '') {
+    // Allow empty strings but filter out undefined and null
+    if (data[key] !== undefined && data[key] !== null) {
       updateData[key] = data[key];
     }
   });
+  
+  console.log('Sending update data:', updateData); // Debug log
   
   // If no valid data to update, throw error
   if (Object.keys(updateData).length === 0) {
     throw new Error('No valid data to update');
   }
   
-  const response = await api.put(`/users/${id}`, updateData);
-  return response.data;
+  try {
+    const response = await api.put(`/users/${id}`, updateData);
+    console.log('Update response:', response.data); // Debug log
+    return response.data;
+  } catch (error) {
+    console.error('Update error:', error.response?.data || error.message);
+    throw error;
+  }
 };
 
 export const getUserById = async (id) => {
