@@ -69,6 +69,7 @@ const ProfileUpdateForm = ({ initialValues, onSubmit }) => (
                 </div>
                 <ErrorMessage name="name" component="div" className="mt-1 text-sm text-red-600" />
               </div>
+              
 
               {/* Email Field */}
               <div>

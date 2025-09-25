@@ -517,18 +517,12 @@ const Navbar = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [propertiesDropdownOpen, setPropertiesDropdownOpen] = useState(false);
-  const [dashboardHover, setDashboardHover] = useState(false);
-  const [sidebarHover, setSidebarHover] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   
   const location = useLocation();
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
   
   const profileRef = useRef(null);
-  const hideTimeoutRef = useRef(null);
-  const mouseCheckIntervalRef = useRef(null);
 
-  // Handle clicks outside the profile dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileRef.current && !profileRef.current.contains(event.target) && profileDropdownOpen) {
@@ -547,389 +541,300 @@ const Navbar = () => {
     };
   }, [profileDropdownOpen]);
 
-  // Track mouse position
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-    
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-    };
-  }, []);
-
-  // Check if mouse is over sidebar area
-  useEffect(() => {
-    const checkSidebarHover = () => {
-      // Check if mouse is within the sidebar area (left side of screen)
-      // We'll define the sidebar area as the left 300px of the screen when expanded
-      // or left 80px when collapsed
-      const sidebarWidth = isExpanded ? 300 : 80;
-      
-      if (mousePosition.x <= sidebarWidth && isVisible) {
-        setSidebarHover(true);
-      } else {
-        setSidebarHover(false);
-      }
-    };
-
-    // Set up interval to check mouse position
-    mouseCheckIntervalRef.current = setInterval(checkSidebarHover, 100);
-
-    return () => {
-      if (mouseCheckIntervalRef.current) {
-        clearInterval(mouseCheckIntervalRef.current);
-      }
-    };
-  }, [mousePosition, isVisible, isExpanded]);
-
-  // Handle sidebar visibility based on hover states
-  useEffect(() => {
-    const clearHideTimeout = () => {
-      if (hideTimeoutRef.current) {
-        clearTimeout(hideTimeoutRef.current);
-        hideTimeoutRef.current = null;
-      }
-    };
-
-    if (dashboardHover || sidebarHover) {
-      // Show sidebar if either dashboard or sidebar is hovered
-      if (!isVisible) {
-        toggleSidebar();
-      }
-      clearHideTimeout();
-    } else if (isVisible) {
-      // Set timeout to hide sidebar when neither is hovered
-      hideTimeoutRef.current = setTimeout(() => {
-        toggleSidebar();
-      }, 300);
-    }
-
-    return () => {
-      clearHideTimeout();
-    };
-  }, [dashboardHover, sidebarHover, isVisible, toggleSidebar]);
-
   return (
     <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm shadow-lg border-b border-gray-100">
-      {/* Main navbar */}
-      <div className="container mx-auto px-4 py-3">
-        <div className="flex justify-between items-center">
-          {/* Logo with gradient accent - premium styling */}
-          <div className="flex items-center">
-            {/* Sidebar Toggle Button - only show if user is logged in */}
-            {user && (
-              <button
-                onClick={toggleSidebar}
-                className="p-2 rounded-xl hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-all duration-300 mr-2"
-              >
-                {Icons.sidebar}
-              </button>
-            )}
-            
-            <Link to="/" className="flex items-center group">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#16A085] to-[#2C3E50] flex items-center justify-center mr-3 shadow-lg group-hover:shadow-xl transition-shadow duration-300">
-                {Icons.home}
-              </div>
-              <div>
-                <span className="text-2xl font-bold bg-gradient-to-r from-[#2C3E50] to-[#16A085] bg-clip-text text-transparent font-sans tracking-tight">
-                  ACR-Estates
-                </span>
-                <div className="text-xs text-gray-500 uppercase tracking-wider">Luxury Real Estate</div>
-              </div>
-            </Link>
-          </div>
-
-          {/* Desktop Navigation with premium styling */}
-          <div className="hidden lg:flex items-center space-x-8">
-            <Link to="/" className="relative text-gray-700 hover:text-[#16A085] font-medium transition-all duration-300 group">
-              Home
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#16A085] to-[#2C3E50] transition-all duration-300 group-hover:w-full"></span>
-            </Link>
-
-            <div
-              className="relative"
-              onMouseEnter={() => setPropertiesDropdownOpen(true)}
-              onMouseLeave={() => setPropertiesDropdownOpen(false)}
-            >
-              <button className="flex items-center text-gray-700 hover:text-[#16A085] font-medium transition-colors">
-                Properties {Icons.arrow}
-              </button>
-
-              {propertiesDropdownOpen && (
-                <div className="absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-xl py-3 z-50 border border-gray-100 overflow-hidden">
-                  <Link to="/properties" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
-                    {Icons.home}
-                    <span className="ml-3">All Properties</span>
-                  </Link>
-                  <Link to="/properties/luxury" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
-                    {Icons.building}
-                    <span className="ml-3">Luxury Homes</span>
-                  </Link>
-                  <Link to="/properties/new" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-r from-[#16A085] to-[#2C3E50] flex items-center justify-center text-white text-xs mr-3">N</div>
-                    <span>New Developments</span>
-                  </Link>
-                  <Link to="/properties/commercial" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-r from-[#16A085] to-[#2C3E50] flex items-center justify-center text-white text-xs mr-3">C</div>
-                    <span>Commercial</span>
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            <Link to="/agents" className="relative text-gray-700 hover:text-[#16A085] font-medium transition-all duration-300 group">
-              Agents
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#16A085] to-[#2C3E50] transition-all duration-300 group-hover:w-full"></span>
-            </Link>
-
-            <Link to="/services" className="relative text-gray-700 hover:text-[#16A085] font-medium transition-all duration-300 group">
-              Services
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#16A085] to-[#2C3E50] transition-all duration-300 group-hover:w-full"></span>
-            </Link>
-
-            <Link to="/about" className="relative text-gray-700 hover:text-[#16A085] font-medium transition-all duration-300 group">
-              About
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#16A085] to-[#2C3E50] transition-all duration-300 group-hover:w-full"></span>
-            </Link>
-
-            <Link to="/contact" className="relative text-gray-700 hover:text-[#16A085] font-medium transition-all duration-300 group">
-              Contact
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#16A085] to-[#2C3E50] transition-all duration-300 group-hover:w-full"></span>
-            </Link>
-          </div>
-
-          {/* Right side actions with premium styling */}
-          <div className="flex items-center space-x-4">
-            {/* Search toggle with premium styling */}
-            <button
-              onClick={() => setSearchOpen(!searchOpen)}
-              className="p-2 rounded-xl hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-all duration-300"
-            >
-              {Icons.search}
-            </button>
-
-            {/* User section with premium styling */}
-            {user ? (
-              <div ref={profileRef} className="relative">
-                <button
-                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                  className="flex items-center space-x-2 p-2 rounded-xl hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-all duration-300"
-                >
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#16A085] to-[#2C3E50] flex items-center justify-center shadow-md">
-                    {Icons.user}
-                  </div>
-                  <span className="hidden md:block text-gray-700 font-medium">{user.name}</span>
-                </button>
-
-                {profileDropdownOpen && (
-                  <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-xl py-3 z-50 border border-gray-100 overflow-hidden">
-                    <div className="px-4 py-3 bg-gradient-to-r from-[#16A085]/10 to-[#2C3E50]/10 border-b border-gray-100">
-                      <p className="text-sm font-medium text-gray-500">Signed in as</p>
-                      <p className="font-semibold text-gray-800 truncate">{user.name}</p>
-                    </div>
-
-                    {/* Dashboard link - only show if not on auth pages */}
-                    {!isAuthPage && (
-                      <Link 
-                        to="/dashboard" 
-                        className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center"
-                        onMouseEnter={() => setDashboardHover(true)}
-                        onMouseLeave={() => setDashboardHover(false)}
-                      >
-                        {Icons.dashboard}
-                        <span className="ml-3">Dashboard</span>
-                      </Link>
-                    )}
-                    
-                    <Link to="/profile" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
-                      {Icons.user}
-                      <span className="ml-3">My Profile</span>
-                    </Link>
-
-                    {/* Role-specific links */}
-                    {user.role === 'CUSTOMER' && (
-                      <>
-                        <Link to="/my-properties" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
-                          {Icons.home}
-                          <span className="ml-3">My Properties</span>
-                        </Link>
-                        <Link to="/payment-history" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
-                          {Icons.payments}
-                          <span className="ml-3">Payment History</span>
-                        </Link>
-                        <Link to="/request-appointment" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
-                          {Icons.calendar}
-                          <span className="ml-3">Request Appointment</span>
-                        </Link>
-                      </>
-                    )}
-
-                    {user.role === 'AGENT' && (
-                      <>
-                        <Link to="/agent-properties" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
-                          {Icons.home}
-                          <span className="ml-3">My Properties</span>
-                        </Link>
-                        <Link to="/appointments-requests" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
-                          {Icons.calendar}
-                          <span className="ml-3">Appointments</span>
-                        </Link>
-                        <Link to="/leads" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
-                          {Icons.users}
-                          <span className="ml-3">Leads</span>
-                        </Link>
-                        <Link to="/start-chat" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
-                          {Icons.messages}
-                          <span className="ml-3">Messages</span>
-                        </Link>
-                      </>
-                    )}
-
-                    {user.role === 'ADMIN' && (
-                      <>
-                        <Link to="/users" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
-                          {Icons.users}
-                          <span className="ml-3">Manage Users</span>
-                        </Link>
-                        <Link to="/users-report" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
-                          {Icons.dashboard}
-                          <span className="ml-3">Reports</span>
-                        </Link>
-                      </>
-                    )}
-
-                    <div className="border-t border-gray-100 my-2"></div>
-                    <button
-                      onClick={() => {
-                        signOut();
-                        setProfileDropdownOpen(false);
-                      }}
-                      className="block w-full text-left px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                      </svg>
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="hidden md:flex items-center space-x-3">
-                <Link
-                  to="/login"
-                  className="inline-block px-6 py-2 border border-gray-300 text-gray-700 rounded-xl font-medium
-             hover:bg-gradient-to-r hover:from-[#16A085] hover:to-[#2C3E50] hover:text-white
-             hover:shadow-md transition-all duration-300"
-                >
-                  Log in
-                </Link>
-
-                <Link
-                  to="/register"
-                  className="inline-block px-6 py-2 border border-gray-300 text-gray-700 rounded-xl font-medium
-             hover:bg-gradient-to-r hover:from-[#16A085] hover:to-[#2C3E50] hover:text-white
-             hover:shadow-md transition-all duration-300"
-                >
-                  Sign up
-                </Link>
-              </div>
-            )}
-
-            {/* Mobile menu toggle with premium styling */}
-            <button
-              className="lg:hidden p-2 rounded-xl hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-all duration-300"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? Icons.close : Icons.menu}
-            </button>
-          </div>
-        </div>
-
-        {/* Premium Search bar */}
-        {searchOpen && (
-          <div className="mt-4 pb-4">
-            <div className="relative max-w-xl mx-auto">
-              <input
-                type="text"
-                placeholder="Search properties, locations, agents..."
-                className="w-full py-3 px-4 pr-12 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#16A085] focus:border-transparent shadow-sm"
-              />
-              <button className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-[#16A085] to-[#2C3E50] text-white p-2.5 rounded-xl hover:shadow-md transition-all duration-300">
-                {Icons.search}
-              </button>
-            </div>
-          </div>
+  {/* Main navbar */}
+  <div className="container mx-auto px-4 py-2">
+    <div className="flex justify-between items-center">
+      {/* Logo with gradient accent - premium styling */}
+      <div className="flex items-center">
+        {/* Sidebar Toggle Button - only show if user is logged in */}
+        {user && (
+          <button
+            onClick={toggleSidebar}
+            className="p-1.5 rounded-lg hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-all duration-300 mr-2"
+          >
+            {Icons.sidebar}
+          </button>
         )}
+        
+        <Link to="/" className="flex items-center group">
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#16A085] to-[#2C3E50] flex items-center justify-center mr-2 shadow-md group-hover:shadow-lg transition-shadow duration-300">
+            {Icons.home}
+          </div>
+          <div>
+            <span className="text-xl font-bold bg-gradient-to-r from-[#2C3E50] to-[#16A085] bg-clip-text text-transparent font-sans tracking-tight">
+              ACR-Estates
+            </span>
+            <div className="text-xs text-gray-500 uppercase tracking-wider">Luxury Real Estate</div>
+          </div>
+        </Link>
       </div>
 
-      {/* Premium Mobile menu */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden bg-white/95 backdrop-blur-sm border-t border-gray-100">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex flex-col space-y-4">
-              <Link to="/" className="text-gray-700 hover:text-[#16A085] font-medium py-3 border-b border-gray-100 transition-colors">
-                Home
-              </Link>
+      {/* Desktop Navigation with premium styling */}
+      <div className="hidden lg:flex items-center space-x-6">
+        <Link to="/" className="relative text-gray-700 hover:text-[#16A085] font-medium transition-all duration-300 group">
+          Home
+          <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#16A085] to-[#2C3E50] transition-all duration-300 group-hover:w-full"></span>
+        </Link>
 
-              <div className="py-2 border-b border-gray-100">
-                <p className="text-gray-700 font-medium mb-3">Properties</p>
-                <div className="pl-4 space-y-3">
-                  <Link to="/properties" className="block text-gray-600 hover:text-[#16A085] transition-colors flex items-center py-2">
-                    {Icons.home}
-                    <span className="ml-3">All Properties</span>
-                  </Link>
-                  <Link to="/properties/luxury" className="block text-gray-600 hover:text-[#16A085] transition-colors flex items-center py-2">
-                    {Icons.building}
-                    <span className="ml-3">Luxury Homes</span>
-                  </Link>
-                  <Link to="/properties/new" className="block text-gray-600 hover:text-[#16A085] transition-colors flex items-center py-2">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-r from-[#16A085] to-[#2C3E50] flex items-center justify-center text-white text-xs mr-3">N</div>
-                    <span>New Developments</span>
-                  </Link>
-                  <Link to="/properties/commercial" className="block text-gray-600 hover:text-[#16A085] transition-colors flex items-center py-2">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-r from-[#16A085] to-[#2C3E50] flex items-center justify-center text-white text-xs mr-3">C</div>
-                    <span>Commercial</span>
-                  </Link>
-                </div>
+        <div
+          className="relative"
+          onMouseEnter={() => setPropertiesDropdownOpen(true)}
+          onMouseLeave={() => setPropertiesDropdownOpen(false)}
+        >
+          <button className="flex items-center text-gray-700 hover:text-[#16A085] font-medium transition-colors">
+            Properties {Icons.arrow}
+          </button>
+
+          {propertiesDropdownOpen && (
+            <div className="absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-xl py-3 z-50 border border-gray-100 overflow-hidden">
+              <Link to="/properties" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
+                {Icons.home}
+                <span className="ml-3">All Properties</span>
+              </Link>
+              <Link to="/properties/luxury" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
+                {Icons.building}
+                <span className="ml-3">Luxury Homes</span>
+              </Link>
+              <Link to="/properties/new" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-r from-[#16A085] to-[#2C3E50] flex items-center justify-center text-white text-xs mr-3">N</div>
+                <span>New Developments</span>
+              </Link>
+              <Link to="/properties/commercial" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-r from-[#16A085] to-[#2C3E50] flex items-center justify-center text-white text-xs mr-3">C</div>
+                <span>Commercial</span>
+              </Link>
+            </div>
+          )}
+        </div>
+
+        <Link to="/agents" className="relative text-gray-700 hover:text-[#16A085] font-medium transition-all duration-300 group">
+          Agents
+          <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#16A085] to-[#2C3E50] transition-all duration-300 group-hover:w-full"></span>
+        </Link>
+
+        <Link to="/services" className="relative text-gray-700 hover:text-[#16A085] font-medium transition-all duration-300 group">
+          Services
+          <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#16A085] to-[#2C3E50] transition-all duration-300 group-hover:w-full"></span>
+        </Link>
+
+        <Link to="/about" className="relative text-gray-700 hover:text-[#16A085] font-medium transition-all duration-300 group">
+          About
+          <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#16A085] to-[#2C3E50] transition-all duration-300 group-hover:w-full"></span>
+        </Link>
+
+        <Link to="/contact" className="relative text-gray-700 hover:text-[#16A085] font-medium transition-all duration-300 group">
+          Contact
+          <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#16A085] to-[#2C3E50] transition-all duration-300 group-hover:w-full"></span>
+        </Link>
+      </div>
+
+      {/* Right side actions with premium styling */}
+      <div className="flex items-center space-x-3">
+        {/* User section with premium styling */}
+        {user ? (
+          <div ref={profileRef} className="relative">
+            <button
+              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+              className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-all duration-300"
+            >
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#16A085] to-[#2C3E50] flex items-center justify-center shadow-md">
+                {Icons.user}
               </div>
+              <span className="hidden md:block text-gray-700 font-medium">{user.name}</span>
+            </button>
 
-              <Link to="/agents" className="text-gray-700 hover:text-[#16A085] font-medium py-3 border-b border-gray-100 transition-colors">
-                Agents
-              </Link>
-
-              <Link to="/services" className="text-gray-700 hover:text-[#16A085] font-medium py-3 border-b border-gray-100 transition-colors">
-                Services
-              </Link>
-
-              <Link to="/about" className="text-gray-700 hover:text-[#16A085] font-medium py-3 border-b border-gray-100 transition-colors">
-                About
-              </Link>
-
-              <Link to="/contact" className="text-gray-700 hover:text-[#16A085] font-medium py-3 border-b border-gray-100 transition-colors">
-                Contact
-              </Link>
-
-              {!user && (
-                <div className="flex flex-col space-y-3 pt-2">
-                  <Link to="/login" className="text-center py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors font-medium">
-                    Login
-                  </Link>
-                  <Link to="/register">
-                    <CustomButton className="w-full bg-gradient-to-r from-[#16A085] to-[#2C3E50] hover:shadow-md text-white py-3 rounded-xl font-medium transition-all duration-300">
-                      Register
-                    </CustomButton>
-                  </Link>
+            {profileDropdownOpen && (
+              <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-xl py-3 z-50 border border-gray-100 overflow-hidden">
+                <div className="px-4 py-3 bg-gradient-to-r from-[#16A085]/10 to-[#2C3E50]/10 border-b border-gray-100">
+                  <p className="text-sm font-medium text-gray-500">Signed in as</p>
+                  <p className="font-semibold text-gray-800 truncate">{user.name}</p>
                 </div>
-              )}
+
+                {/* Dashboard link - only show if not on auth pages */}
+                {!isAuthPage && (
+                  <Link 
+                    to="/dashboard" 
+                    className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center"
+                    onMouseEnter={() => setDashboardHover(true)}
+                    onMouseLeave={() => setDashboardHover(false)}
+                  >
+                    {Icons.dashboard}
+                    <span className="ml-3">Dashboard</span>
+                  </Link>
+                )}
+                
+                <Link to="/profile" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
+                  {Icons.user}
+                  <span className="ml-3">My Profile</span>
+                </Link>
+
+                {/* Role-specific links */}
+                {user.role === 'CUSTOMER' && (
+                  <>
+                    <Link to="/my-properties" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
+                      {Icons.home}
+                      <span className="ml-3">My Properties</span>
+                    </Link>
+                    <Link to="/payment-history" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
+                      {Icons.payments}
+                      <span className="ml-3">Payment History</span>
+                    </Link>
+                    <Link to="/request-appointment" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
+                      {Icons.calendar}
+                      <span className="ml-3">Request Appointment</span>
+                    </Link>
+                  </>
+                )}
+
+                {user.role === 'AGENT' && (
+                  <>
+                    <Link to="/agent-properties" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
+                      {Icons.home}
+                      <span className="ml-3">My Properties</span>
+                    </Link>
+                    <Link to="/appointments-requests" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
+                      {Icons.calendar}
+                      <span className="ml-3">Appointments</span>
+                    </Link>
+                    <Link to="/leads" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
+                      {Icons.users}
+                      <span className="ml-3">Leads</span>
+                    </Link>
+                    <Link to="/start-chat" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
+                      {Icons.messages}
+                      <span className="ml-3">Messages</span>
+                    </Link>
+                  </>
+                )}
+
+                {user.role === 'ADMIN' && (
+                  <>
+                    <Link to="/users" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
+                      {Icons.users}
+                      <span className="ml-3">Manage Users</span>
+                    </Link>
+                    <Link to="/users-report" className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center">
+                      {Icons.dashboard}
+                      <span className="ml-3">Reports</span>
+                    </Link>
+                  </>
+                )}
+
+                <div className="border-t border-gray-100 my-2"></div>
+                <button
+                  onClick={() => {
+                    signOut();
+                    setProfileDropdownOpen(false);
+                  }}
+                  className="block w-full text-left px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="hidden md:flex items-center space-x-2">
+            <Link
+              to="/login"
+              className="inline-block px-4 py-1.5 border border-gray-300 text-gray-700 rounded-lg font-medium
+         hover:bg-gradient-to-r hover:from-[#16A085] hover:to-[#2C3E50] hover:text-white
+         hover:shadow-md transition-all duration-300"
+            >
+              Log in
+            </Link>
+
+            <Link
+              to="/register"
+              className="inline-block px-4 py-1.5 border border-gray-300 text-gray-700 rounded-lg font-medium
+         hover:bg-gradient-to-r hover:from-[#16A085] hover:to-[#2C3E50] hover:text-white
+         hover:shadow-md transition-all duration-300"
+            >
+              Sign up
+            </Link>
+          </div>
+        )}
+
+        {/* Mobile menu toggle with premium styling */}
+        <button
+          className="lg:hidden p-1.5 rounded-lg hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-all duration-300"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
+          {mobileMenuOpen ? Icons.close : Icons.menu}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  {/* Premium Mobile menu */}
+  {mobileMenuOpen && (
+    <div className="lg:hidden bg-white/95 backdrop-blur-sm border-t border-gray-100">
+      <div className="container mx-auto px-4 py-3">
+        <div className="flex flex-col space-y-3">
+          <Link to="/" className="text-gray-700 hover:text-[#16A085] font-medium py-2 border-b border-gray-100 transition-colors">
+            Home
+          </Link>
+
+          <div className="py-2 border-b border-gray-100">
+            <p className="text-gray-700 font-medium mb-2">Properties</p>
+            <div className="pl-4 space-y-2">
+              <Link to="/properties" className="block text-gray-600 hover:text-[#16A085] transition-colors flex items-center py-1">
+                {Icons.home}
+                <span className="ml-3">All Properties</span>
+              </Link>
+              <Link to="/properties/luxury" className="block text-gray-600 hover:text-[#16A085] transition-colors flex items-center py-1">
+                {Icons.building}
+                <span className="ml-3">Luxury Homes</span>
+              </Link>
+              <Link to="/properties/new" className="block text-gray-600 hover:text-[#16A085] transition-colors flex items-center py-1">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-r from-[#16A085] to-[#2C3E50] flex items-center justify-center text-white text-xs mr-3">N</div>
+                <span>New Developments</span>
+              </Link>
+              <Link to="/properties/commercial" className="block text-gray-600 hover:text-[#16A085] transition-colors flex items-center py-1">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-r from-[#16A085] to-[#2C3E50] flex items-center justify-center text-white text-xs mr-3">C</div>
+                <span>Commercial</span>
+              </Link>
             </div>
           </div>
+
+          <Link to="/agents" className="text-gray-700 hover:text-[#16A085] font-medium py-2 border-b border-gray-100 transition-colors">
+            Agents
+          </Link>
+
+          <Link to="/services" className="text-gray-700 hover:text-[#16A085] font-medium py-2 border-b border-gray-100 transition-colors">
+            Services
+          </Link>
+
+          <Link to="/about" className="text-gray-700 hover:text-[#16A085] font-medium py-2 border-b border-gray-100 transition-colors">
+            About
+          </Link>
+
+          <Link to="/contact" className="text-gray-700 hover:text-[#16A085] font-medium py-2 border-b border-gray-100 transition-colors">
+            Contact
+          </Link>
+
+          {!user && (
+            <div className="flex flex-col space-y-2 pt-2">
+              <Link to="/login" className="text-center py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors font-medium">
+                Login
+              </Link>
+              <Link to="/register">
+                <CustomButton className="w-full bg-gradient-to-r from-[#16A085] to-[#2C3E50] hover:shadow-md text-white py-2 rounded-lg font-medium transition-all duration-300">
+                  Register
+                </CustomButton>
+              </Link>
+            </div>
+          )}
         </div>
-      )}
-    </nav>
+      </div>
+    </div>
+  )}
+</nav>
   );
 };
 

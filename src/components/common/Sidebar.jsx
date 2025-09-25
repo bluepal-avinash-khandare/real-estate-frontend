@@ -328,7 +328,7 @@ const Sidebar = () => {
       {/* Premium Sidebar with proper positioning */}
       <aside 
         ref={sidebarRef}
-        className={`fixed top-0 left-0 h-full bg-gradient-to-b from-gray-900 to-gray-800 text-gray-100 z-40 transition-all duration-500 ease-in-out shadow-2xl ${
+        className={`fixed top-15 left-0 h-full bg-gradient-to-b from-gray-900 to-gray-800 text-gray-100 z-40 transition-all duration-500 ease-in-out shadow-2xl ${
           isVisible ? 'translate-x-0' : '-translate-x-full'
         } ${
           isExpanded ? 'w-72' : 'w-20'
