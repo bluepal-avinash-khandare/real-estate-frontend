@@ -1,9 +1,6 @@
 import api from './api';
 
-export const getUserById = async (id) => {
-  const response = await api.get(`/users/${id}`);
-  return response.data;
-};
+
 
 export const getUserByEmail = async (email) => {
   const response = await api.get(`/users/email/${email}`);
@@ -15,8 +12,37 @@ export const getAllUsers = async (params) => {
   return response.data;
 };
 
+
 export const updateUser = async (id, data) => {
-  const response = await api.put(`/users/${id}`, data);
+  // Validate id before making the request
+  if (!id || id === 'undefined') {
+    throw new Error('Invalid user ID');
+  }
+  
+  // Only send fields that have values (partial update)
+  const updateData = {};
+  Object.keys(data).forEach(key => {
+    if (data[key] !== undefined && data[key] !== null && data[key] !== '') {
+      updateData[key] = data[key];
+    }
+  });
+  
+  // If no valid data to update, throw error
+  if (Object.keys(updateData).length === 0) {
+    throw new Error('No valid data to update');
+  }
+  
+  const response = await api.put(`/users/${id}`, updateData);
+  return response.data;
+};
+
+export const getUserById = async (id) => {
+  // Validate id before making the request
+  if (!id || id === 'undefined') {
+    throw new Error('Invalid user ID');
+  }
+  
+  const response = await api.get(`/users/${id}`);
   return response.data;
 };
 

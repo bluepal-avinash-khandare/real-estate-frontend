@@ -15,10 +15,10 @@ export const profileUpdateSchema = Yup.object({
     .required('Email is required'),
 
   phone: Yup.string()
+    .transform(value => value === "" ? null : value) // Convert empty string to null
+    .nullable() // Allow null values
     .matches(
       /^[6-9][0-9]{9}$/,
       'Phone must be exactly 10 digits and start with 6, 7, 8, or 9 (e.g., 9876543210)'
-    )
-    .nullable()           // allow empty if you want to make phone optional
-    .required('Phone is required'),
+    ),
 });
