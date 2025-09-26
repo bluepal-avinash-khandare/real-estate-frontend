@@ -49,7 +49,7 @@ const AgentRegister = () => {
     return () => clearInterval(interval);
   }, [propertyImages.length]);
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async (values, { setSubmitting }) => {
     try {
       setError(null);
       setSuccess(null);
@@ -62,10 +62,7 @@ const AgentRegister = () => {
         email: values.email,
         password: values.password,
         phone: values.phone,
-        role: values.role,
-        licenseNumber: values.licenseNumber,
-        agency: values.agency,
-        experience: values.experience
+        role: values.role
       };
       
       console.log("Submitting agent registration with:", registrationData);
@@ -98,9 +95,6 @@ const AgentRegister = () => {
               errorMessage.includes('email already exists') || 
               errorMessage.includes('email is already registered')) {
             setError('This email is already registered. Please use a different email or try logging in.');
-          } else if (errorMessage.includes('License is already used') || 
-                    errorMessage.includes('license already exists')) {
-            setError('This license number is already registered. Please use a different license number.');
           } else {
             setError(errorMessage);
           }
@@ -114,6 +108,8 @@ const AgentRegister = () => {
         console.error('Error message:', error.message);
         setError('An error occurred during registration. Please try again.');
       }
+    } finally {
+      setSubmitting(false);
     }
   };
 
