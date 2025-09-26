@@ -45,6 +45,8 @@ import UsersReport from './pages/users/UsersReport';
 import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
 import Sidebar from './components/common/Sidebar';
+import RegisterChoice from './pages/auth/RegisterChoice';
+import AgentRegister from './pages/auth/AgentRegister';
 
 // Create a separate ProtectedRoute component
 const ProtectedRoute = ({ children, roles }) => {
@@ -122,6 +124,10 @@ const App = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/register-agent" element={<AgentRegister />} />
+          <Route path="/register-choice" element={<RegisterChoice />} />
+
+
           
           {/* Properties Routes */}
           <Route path="/properties" element={<PropertiesList />} />
