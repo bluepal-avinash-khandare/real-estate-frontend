@@ -18,7 +18,9 @@ const CreateProperty = () => {
     bedrooms: 0, 
     bathrooms: 0, 
     area: 0, 
-    images: [] 
+    images: [] ,
+    documents:[],
+      amenities: [] 
   };
 
   const handleSubmit = async (values) => {
@@ -27,12 +29,13 @@ const CreateProperty = () => {
     setSuccess(false);
     
     try {
-      await createProperty(values, values.images);
+      console.log("Amenities submitted:", values.amenities); // ✅ check here
+      await createProperty(values, values.images, values.documents);
       setSuccess(true);
       
       // Redirect after successful creation
       setTimeout(() => {
-        navigate('/agent-properties');
+        navigate('/properties');
       }, 2000);
     } catch (err) {
       setError(err.message || 'Failed to create property');
