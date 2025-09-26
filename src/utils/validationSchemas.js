@@ -6,10 +6,25 @@ export const loginSchema = Yup.object().shape({
 });
 
 export const registerSchema = Yup.object().shape({
-  name: Yup.string().min(3).max(50).required('Required'),
-  email: Yup.string().email('Invalid email').required('Required'),
-  password: Yup.string().min(8).max(20).matches(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!]).{8,}$/, 'Must contain digit, uppercase, lowercase, special char').required('Required'),
-  role: Yup.string().required('Required'),
+  name: Yup.string().required('Name is required').min(2, 'Name must be at least 2 characters'),
+  email: Yup.string().email('Invalid email address').required('Email is required'),
+  password: Yup.string().required('Password is required').min(8, 'Password must be at least 8 characters'),
+  phone: Yup.string().required('Phone number is required').min(10, 'Phone number must be 10 digits').max(10, 'Phone number must be 10 digits'),
+  role: Yup.string().required('Role is required'),
+  // Agent-specific fields (conditionally required based on role)
+  licenseNumber: Yup.string().when('role', {
+    is: 'AGENT',
+    then: Yup.string().required('License number is required for agents')
+  }),
+  agency: Yup.string().when('role', {
+    is: 'AGENT',
+    then: Yup.string().required('Agency name is required for agents')
+  }),
+  experience: Yup.string().when('role', {
+    is: 'AGENT',
+    then: Yup.string().required('Experience is required for agents')
+  }),
+  terms: Yup.boolean().oneOf([true], 'You must accept the terms and conditions')
 });
 
 export const forgotPasswordSchema = Yup.object().shape({
