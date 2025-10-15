@@ -332,6 +332,7 @@ import React, { useState, useEffect } from 'react';
 import { getProperties } from '../../services/propertyService';
 import Card from '../../components/common/Card';
 import Filter from '../../components/common/Filter';
+import { Link } from 'react-router-dom';
 
 const PropertiesList = () => {
   const [properties, setProperties] = useState([]);
@@ -584,9 +585,11 @@ const PropertiesList = () => {
                             )}
                           </div>
                           
+                          <Link to={`/properties/${prop.id}`}>
                           <button className="text-[#16A085] hover:text-[#138871] text-sm font-medium">
                             View Details
                           </button>
+                          </Link>
                         </div>
                       </div>
                     </div>

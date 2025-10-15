@@ -1,34 +1,3 @@
-// import React, { useState, useEffect } from 'react';
-// import { useParams } from 'react-router-dom';
-// import { getProperty } from '../../services/propertyService';
-
-// const PropertyDetail = () => {
-//   const { id } = useParams();
-//   const [property, setProperty] = useState(null);
-
-//   useEffect(() => {
-//     const fetchProperty = async () => {
-//       const data = await getProperty(id);
-//       setProperty(data.data);
-//     };
-//     fetchProperty();
-//   }, [id]);
-
-//   if (!property) return <p>Loading...</p>;
-
-//   return (
-//     <div>
-//       <h2>{property.title}</h2>
-//       <p>{property.description}</p>
-//       {/* Display images, etc. */}
-//     </div>
-//   );
-// };
-
-// export default PropertyDetail;
-
-
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { getProperty } from '../../services/propertyService';
@@ -119,9 +88,15 @@ const PropertyDetail = () => {
     );
   }
 
-  // Property images
-  const images = property.images || [property.imageUrl];
-  const hasImages = images && images.length > 0;
+  // Extract image URLs from the images array
+  const imageUrls = property.images && property.images.length > 0 
+    ? property.images.map(img => img.url) 
+    : [];
+    
+  const hasImages = imageUrls.length > 0;
+  
+  // Check if property has an offer
+  const hasOffer = property.offerPercentage && property.offerPercentage > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -174,16 +149,20 @@ const PropertyDetail = () => {
                   {/* Main Image */}
                   <div className="h-96 bg-gray-200">
                     <img 
-                      src={images[activeImageIndex]} 
+                      src={imageUrls[activeImageIndex]} 
                       alt={property.title} 
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.onerror = null; 
+                        e.target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTQgMTZsNC41ODYtNC41ODZhMiAyIDAgMDEyLjgyOCAwTDE2IDE2bTItMmwxLjU4Ni0xLjU4NmEyIDIgMCAwMTIuODI4IDBMMjAgMTRtLTYtNmguMDFNNiAyMGgxMmEyIDIgMCAwMDItMlY2YTIgMiAwIDAwLTItMkg2YTIgMiAwIDAwLTIgMnYxMmEyIDIgMCAwMDIgMnoiLz48L3N2Zz4=';
+                      }}
                     />
                   </div>
                   
                   {/* Thumbnail Gallery */}
-                  {images.length > 1 && (
+                  {imageUrls.length > 1 && (
                     <div className="flex p-4 space-x-2 overflow-x-auto">
-                      {images.map((image, index) => (
+                      {imageUrls.map((imageUrl, index) => (
                         <button
                           key={index}
                           onClick={() => setActiveImageIndex(index)}
@@ -192,9 +171,13 @@ const PropertyDetail = () => {
                           }`}
                         >
                           <img 
-                            src={image} 
+                            src={imageUrl} 
                             alt={`Property view ${index + 1}`} 
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.onerror = null; 
+                              e.target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik00IDE2bDQuNTg2LTQuNTg2YTIgMiAwIDAxMi44MjggMEwxNiAxNm0yLTJsMS41ODYtMS41ODZhMiAyIDAgMDEyLjgyOCAwTDIwIDE0bTYtNmguMDFNNiAyMGgxMmEyIDIgMCAwMDItMlY2YTIgMiAwIDAwLTItMkg2YTIgMiAwIDAwLTIgMnYxMmEyIDIgMCAwMDIgMnoiLz48L3N2Zz4=';
+                            }}
                           />
                         </button>
                       ))}
@@ -223,11 +206,27 @@ const PropertyDetail = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    {property.location || 'Location not specified'}
+                    {property.address || 'Location not specified'}
                   </div>
                 </div>
-                <div className="text-3xl font-bold text-[#16A085]">
-                  {property.price ? formatCurrency(property.price) : 'Price not set'}
+                <div className="text-right">
+                  {hasOffer ? (
+                    <>
+                      <div className="text-2xl font-bold text-[#16A085]">
+                        {property.offerPrice ? formatCurrency(property.offerPrice) : 'Price not set'}
+                      </div>
+                      <div className="text-lg text-gray-500 line-through">
+                        {property.price ? formatCurrency(property.price) : 'Price not set'}
+                      </div>
+                      <div className="text-sm font-medium text-red-600 mt-1">
+                        Save {property.offerPercentage}%
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-3xl font-bold text-[#16A085]">
+                      {property.price ? formatCurrency(property.price) : 'Price not set'}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -277,16 +276,55 @@ const PropertyDetail = () => {
                       <span className="text-gray-600">{property.area} sq ft</span>
                     </div>
                   )}
-                  {property.yearBuilt && (
+                  {property.balcony && (
                     <div className="flex items-center">
                       <svg className="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      <span className="text-gray-600">Built in {property.yearBuilt}</span>
+                      <span className="text-gray-600">{property.balcony} Balconies</span>
+                    </div>
+                  )}
+                  {property.floor && (
+                    <div className="flex items-center">
+                      <svg className="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span className="text-gray-600">Floor {property.floor}</span>
                     </div>
                   )}
                 </div>
               </div>
+
+              {/* Nearby Places */}
+              {property.nearby && (
+                <div className="mb-8">
+                  <h2 className="text-xl font-bold text-gray-900 mb-3">Nearby Places</h2>
+                  <p className="text-gray-600">{property.nearby}</p>
+                </div>
+              )}
+
+              {/* Offer Details */}
+              {hasOffer && (
+                <div className="mb-8 bg-yellow-50 rounded-lg p-6 border border-yellow-200">
+                  <h2 className="text-xl font-bold text-gray-900 mb-3">Special Offer</h2>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-gray-600">Limited time offer</p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Original Price: {property.price ? formatCurrency(property.price) : 'Price not set'}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-[#16A085]">
+                        {property.offerPrice ? formatCurrency(property.offerPrice) : 'Price not set'}
+                      </p>
+                      <p className="text-sm font-medium text-red-600 mt-1">
+                        {property.offerPercentage}% OFF
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Amenities */}
               {property.amenities && property.amenities.length > 0 && (
