@@ -57,7 +57,9 @@ export const SidebarProvider = ({ children }) => {
       isVisible,
       isExpanded,
       isMobile,
+       setIsExpanded,
       toggleSidebar,
+      setIsVisible, 
       toggleExpand
     }}>
       {children}
