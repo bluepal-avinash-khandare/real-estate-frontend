@@ -1,16 +1,35 @@
+// import React from 'react';
+// import ResetPasswordForm from '../../components/forms/ResetPasswordForm';
+// import { resetPassword } from '../../services/authService';
+
+// const ResetPassword = () => {
+//   const handleSubmit = async (values) => {
+//     try {
+//       await resetPassword(values);
+//       alert('Password reset');
+//     } catch (error) {
+//       console.error(error);
+//     }
+//   };
+
+//   return (
+//     <div className="p-4">
+//       <ResetPasswordForm onSubmit={handleSubmit} />
+//     </div>
+//   );
+// };
+
+// export default ResetPassword;
+
+
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Link } from 'react-router-dom';  // Add this import
 import ResetPasswordForm from '../../components/forms/ResetPasswordForm';
 import { resetPassword } from '../../services/authService';
 
 const ResetPassword = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const prefilledEmail = location.state?.email || '';
 
   const handleSubmit = async (values) => {
     setIsLoading(true);
@@ -20,9 +39,7 @@ const ResetPassword = () => {
     try {
       await resetPassword(values);
       setSuccess(true);
-      setTimeout(() => {
-        navigate('/login');
-      }, 3000); // Redirect to login after success
+      setTimeout(() => setSuccess(false), 5000);
     } catch (error) {
       console.error(error);
       setError('Failed to reset password. Please check your information and try again.');
@@ -52,7 +69,7 @@ const ResetPassword = () => {
 
         {/* Form Section */}
         <div className="bg-white py-8 px-6 shadow-xl rounded-2xl sm:px-10">
-          <ResetPasswordForm onSubmit={handleSubmit} prefilledEmail={prefilledEmail} />
+          <ResetPasswordForm onSubmit={handleSubmit} />
           
           {/* Status Messages */}
           {success && (
@@ -65,7 +82,7 @@ const ResetPassword = () => {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-green-700">
-                    Password reset successfully! Redirecting to login...
+                    Password reset successfully! You can now log in with your new password.
                   </p>
                 </div>
               </div>
@@ -94,9 +111,9 @@ const ResetPassword = () => {
         <div className="text-center">
           <p className="text-sm text-gray-600">
             Remember your password?{' '}
-            <Link to="/login" className="font-medium text-[#16A085] hover:text-[#138871]">
+            <a href="#" className="font-medium text-[#16A085] hover:text-[#138871]">
               Sign in
-            </Link>
+            </a>
           </p>
         </div>
 
