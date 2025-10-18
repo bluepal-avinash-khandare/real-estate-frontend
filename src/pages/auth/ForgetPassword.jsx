@@ -1,11 +1,31 @@
+// import React from 'react';
+// import ForgotPasswordForm from '../../components/forms/ForgetPasswordForm';
+// import { forgotPassword } from '../../services/authService';
+
+// const ForgotPassword = () => {
+//   const handleSubmit = async (values) => {
+//     try {
+//       await forgotPassword(values);
+//       alert('OTP sent');
+//     } catch (error) {
+//       console.error(error);
+//     }
+//   };
+
+//   return (
+//     <div className="p-4">
+//       <ForgotPasswordForm onSubmit={handleSubmit} />
+//     </div>
+//   );
+// };
+
+// export default ForgotPassword;
+
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';  // Add this import
 import ForgotPasswordForm from '../../components/forms/ForgetPasswordForm';
 import { forgotPassword } from '../../services/authService';
 
 const ForgotPassword = () => {
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -17,10 +37,7 @@ const ForgotPassword = () => {
     try {
       await forgotPassword(values);
       setSuccess(true);
-      // Navigate to reset password after success, passing the email
-      setTimeout(() => {
-        navigate('/reset-password', { state: { email: values.email } });
-      }, 2000); // Brief delay to show success message
+      setTimeout(() => setSuccess(false), 5000);
     } catch (error) {
       console.error(error);
       setError('Failed to send OTP. Please check your email and try again.');
@@ -63,7 +80,7 @@ const ForgotPassword = () => {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-green-700">
-                    OTP sent successfully! Redirecting to reset password...
+                    OTP sent successfully! Please check your email and enter the code to reset your password.
                   </p>
                 </div>
               </div>
@@ -92,9 +109,9 @@ const ForgotPassword = () => {
         <div className="text-center">
           <p className="text-sm text-gray-600">
             Remember your password?{' '}
-            <Link to="/login" className="font-medium text-[#16A085] hover:text-[#138871]">
+            <a href="#" className="font-medium text-[#16A085] hover:text-[#138871]">
               Sign in
-            </Link>
+            </a>
           </p>
         </div>
 
