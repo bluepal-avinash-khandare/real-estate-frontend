@@ -3,7 +3,7 @@ import axios from 'axios';
 // Hard-coded API base URL
 const api = axios.create({
   baseURL: 'http://localhost:8088/api',
-  timeout: 10000,
+  timeout: 30000,
   withCredentials: true, // Important for CORS
 });
 

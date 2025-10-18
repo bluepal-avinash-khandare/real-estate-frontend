@@ -114,6 +114,7 @@ const MainLayout = ({ children }) => {
   );
 };
 const App = () => {
+  
   return (
     <SidebarProvider>
       <MainLayout>
@@ -197,8 +198,11 @@ const App = () => {
           />
           <Route
             path="/request-appointment"
+            
             element={
+              
               <ProtectedRoute roles={['CUSTOMER']}>
+
                 <RequestAppointment />
               </ProtectedRoute>
             }
