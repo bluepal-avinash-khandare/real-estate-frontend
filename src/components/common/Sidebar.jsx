@@ -288,15 +288,35 @@ import AgentSidebar from '../role-based/AgentSidebar';
 
 const Sidebar = () => {
   const { user } = useContext(AuthContext);
-  const { isVisible, setIsVisible, isExpanded, setIsExpanded, isMobile, toggleSidebar, toggleExpand } = useSidebar();
+  const { 
+    isVisible, 
+    isExpanded, 
+    isMobile, 
+    toggleSidebar, 
+    toggleExpand 
+  } = useSidebar();
+  
+  // Local state for sidebar visibility and expansion
+  const [localIsVisible, setLocalIsVisible] = useState(isVisible);
+  const [localIsExpanded, setLocalIsExpanded] = useState(isExpanded);
+  
   const sidebarRef = useRef(null);
   const overlayRef = useRef(null);
   const [hoveredItem, setHoveredItem] = useState(null);
 
+  // Sync local state with context state
+  useEffect(() => {
+    setLocalIsVisible(isVisible);
+  }, [isVisible]);
+
+  useEffect(() => {
+    setLocalIsExpanded(isExpanded);
+  }, [isExpanded]);
+
   // Handle clicks outside the sidebar
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!isVisible) return;
+      if (!localIsVisible) return;
       
       if (sidebarRef.current && sidebarRef.current.contains(event.target)) {
         return;
@@ -306,7 +326,7 @@ const Sidebar = () => {
         return;
       }
       
-      setIsVisible(false);
+      toggleSidebar(); // Use the context function to update state
     };
 
     const timer = setTimeout(() => {
@@ -319,7 +339,7 @@ const Sidebar = () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('touchstart', handleClickOutside);
     };
-  }, [isVisible, setIsVisible]);
+  }, [localIsVisible, toggleSidebar]);
 
   if (!user) return null;
 
@@ -329,9 +349,9 @@ const Sidebar = () => {
       <aside 
         ref={sidebarRef}
         className={`fixed top-15 left-0 h-full bg-gradient-to-b from-gray-900 to-gray-800 text-gray-100 z-40 transition-all duration-500 ease-in-out shadow-2xl ${
-          isVisible ? 'translate-x-0' : '-translate-x-full'
+          localIsVisible ? 'translate-x-0' : '-translate-x-full'
         } ${
-          isExpanded ? 'w-72' : 'w-20'
+          localIsExpanded ? 'w-72' : 'w-20'
         }`}
         style={{ 
           boxShadow: '0 0 40px rgba(0, 0, 0, 0.3), -10px 0 30px rgba(0, 0, 0, 0.2)',
@@ -354,7 +374,7 @@ const Sidebar = () => {
               <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-gray-900 animate-pulse"></div>
             </div>
             
-            {isExpanded && (
+            {localIsExpanded && (
               <div className="ml-4">
                 <div className="font-semibold text-lg text-white">{user.name}</div>
                 <div className="text-sm text-gray-300 flex items-center">
@@ -368,16 +388,16 @@ const Sidebar = () => {
 
         {/* Navigation Menu with premium styling */}
         <div className="flex-1 overflow-y-auto py-6 px-4">
-          {user.role === 'ADMIN' && <AdminSidebar isExpanded={isExpanded} hoveredItem={hoveredItem} setHoveredItem={setHoveredItem} />}
-          {user.role === 'CUSTOMER' && <CustomerSidebar isExpanded={isExpanded} hoveredItem={hoveredItem} setHoveredItem={setHoveredItem} />}
-          {user.role === 'AGENT' && <AgentSidebar isExpanded={isExpanded} hoveredItem={hoveredItem} setHoveredItem={setHoveredItem} />}
+          {user.role === 'ADMIN' && <AdminSidebar isExpanded={localIsExpanded} hoveredItem={hoveredItem} setHoveredItem={setHoveredItem} />}
+          {user.role === 'CUSTOMER' && <CustomerSidebar isExpanded={localIsExpanded} hoveredItem={hoveredItem} setHoveredItem={setHoveredItem} />}
+          {user.role === 'AGENT' && <AgentSidebar isExpanded={localIsExpanded} hoveredItem={hoveredItem} setHoveredItem={setHoveredItem} />}
         </div>
 
         {/* Premium Footer */}
         <div className="p-6 border-t border-gray-700 text-center relative">
           <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
           <div className="relative z-10">
-            {isExpanded ? (
+            {localIsExpanded ? (
               <div className="text-xs text-gray-400">
                 © 2025 ACR-Estates<br />
                 <span className="text-[#16A085]">Luxury Real Estate</span>
@@ -392,11 +412,11 @@ const Sidebar = () => {
       </aside>
 
       {/* Premium Overlay when sidebar is visible on mobile */}
-      {isVisible && isMobile && (
+      {localIsVisible && isMobile && (
         <div 
           ref={overlayRef}
           className="fixed inset-0 bg-black bg-opacity-70 z-30 backdrop-blur-sm"
-          onClick={() => setIsVisible(false)}
+          onClick={toggleSidebar}
         ></div>
       )}
     </>
