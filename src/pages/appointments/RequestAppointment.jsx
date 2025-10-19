@@ -21,21 +21,121 @@
 
 // export default RequestAppointment;
 
-
-import React from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { AuthContext } from '../../contexts/AuthContext';
 import AppointmentRequestForm from '../../components/forms/AppointmentRequestForm';
 import { requestAppointment } from '../../services/appointmentService';
 
 const RequestAppointment = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useContext(AuthContext);
+  const [paymentVerified, setPaymentVerified] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [propertyId, setPropertyId] = useState(null);
+
+  useEffect(() => {
+    // Check if user is authenticated
+    if (!isAuthenticated || !user) {
+      navigate('/login');
+      return;
+    }
+
+    // Get property ID from location state or localStorage
+    const propId = location.state?.propertyId || localStorage.getItem('currentPropertyId');
+    if (!propId) {
+      setError('Property ID not found. Please try again.');
+      setLoading(false);
+      return;
+    }
+    
+    setPropertyId(propId);
+
+    // Check payment status
+    const userId = user.userId || user.id;
+    const paymentKey = `payment_${propId}_user_${userId}`;
+    const paymentDataString = localStorage.getItem(paymentKey);
+
+    if (paymentDataString) {
+      const paymentData = JSON.parse(paymentDataString);
+      if (paymentData.paid && paymentData.status === 'PAID') {
+        setPaymentVerified(true);
+      } else {
+        setError('Payment not completed. Please complete your payment first.');
+      }
+    } else {
+      setError('Payment information not found. Please make a payment first.');
+    }
+
+    setLoading(false);
+  }, [isAuthenticated, user, location.state, navigate]);
+
   const handleSubmit = async (values) => {
+    if (!paymentVerified) {
+      setError('Please complete your payment before booking an appointment.');
+      return;
+    }
+
     try {
-      await requestAppointment(values);
+      // Include property ID in the appointment request
+      const appointmentData = {
+        ...values,
+        propertyId: propertyId
+      };
+      
+      await requestAppointment(appointmentData);
       alert('Appointment requested successfully!');
+      
+      // Clear payment data after successful appointment booking
+      if (propertyId && user) {
+        const userId = user.userId || user.id;
+        const paymentKey = `payment_${propertyId}_user_${userId}`;
+        localStorage.removeItem(paymentKey);
+        localStorage.removeItem('currentPropertyId');
+      }
+      
+      // Navigate to a confirmation page or dashboard
+      navigate('/dashboard');
     } catch (error) {
       console.error(error);
       alert('Failed to request appointment. Please try again.');
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#16A085] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Verifying payment status...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full bg-white shadow-xl rounded-lg p-8 text-center">
+          <div className="text-red-500 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Payment Required</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={() => navigate('/initiate-payment', { state: { propertyId } })}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-[#16A085] hover:bg-[#138871] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#16A085]"
+          >
+            Go to Payment
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -48,6 +148,14 @@ const RequestAppointment = () => {
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Schedule a property viewing at your convenience. Fill out the form below to request an appointment.
           </p>
+          {paymentVerified && (
+            <div className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              Payment Verified
+            </div>
+          )}
         </div>
 
         {/* Main Content */}
