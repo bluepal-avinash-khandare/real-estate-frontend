@@ -98,3 +98,37 @@ export const updateAppointmentStatus = async (appointmentId, status) => {
   return response.data;
 };
 
+// ✅ GET: /api/appointments/customer/{customerId}
+export const getCustomerAppointments = async (customerId, page = 0, size = 10, token) => {
+  // Ensure customerId is a valid number
+  const numericCustomerId = typeof customerId === 'string' ? parseInt(customerId, 10) : customerId;
+  
+  if (isNaN(numericCustomerId)) {
+    throw new Error('Invalid customer ID');
+  }
+  
+  console.log('Making request to /api/appointments/customer with params:', {
+    customerId: numericCustomerId,
+    page,
+    size,
+  });
+  
+  try {
+    const response = await api.get(`/appointments/customer/${numericCustomerId}`, {
+      params: { page, size },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log('Full response:', response);
+    console.log('Response data:', response.data);
+    console.log('Response data content:', response.data?.content);
+    
+    // Return the data directly since your backend returns Page<AppointmentResponseDto>
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching customer appointments:', error);
+    console.error('Error response:', error.response);
+    throw error;
+  }
+};

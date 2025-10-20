@@ -1,9 +1,8 @@
-
-
 import React, { useState, useEffect, useContext } from 'react';
 import { getProperty } from '../../services/propertyService';
 import { requestAppointment } from '../../services/appointmentService';
 import { verifyPayment } from '../../services/paymentService';
+import { getReviewsByProperty, createReview, updateReview, deleteReview } from '../../services/reviewService';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../contexts/AuthContext';
 
@@ -25,6 +24,18 @@ const PropertyDetail = () => {
   const [appointmentError, setAppointmentError] = useState(null);
   const [paymentVerificationError, setPaymentVerificationError] = useState(null);
   const [checkingPayment, setCheckingPayment] = useState(false);
+  
+  // Review states
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [editingReview, setEditingReview] = useState(null);
+  const [reviewsPage, setReviewsPage] = useState(0);
+  const [reviewsTotalPages, setReviewsTotalPages] = useState(1);
+  const [reviewsError, setReviewsError] = useState(null);
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewError, setReviewError] = useState(null);
+
   const navigate = useNavigate();
   const { user, isAuthenticated } = useContext(AuthContext);
 
@@ -38,6 +49,9 @@ const PropertyDetail = () => {
         
         // Check if user has already paid for this property
         checkPaymentStatus();
+        
+        // Fetch reviews for this property
+        fetchReviews();
       } catch (err) {
         setError('Failed to fetch property details');
         console.error(err);
@@ -120,6 +134,375 @@ const PropertyDetail = () => {
     } finally {
       setCheckingPayment(false);
     }
+  };
+
+  // Review functions
+  const fetchReviews = async (page = 0) => {
+    if (!isAuthenticated) return;
+    
+    setReviewsLoading(true);
+    setReviewsError(null);
+    try {
+      const response = await getReviewsByProperty(id, {
+        page,
+        size: 5,
+        sortBy: 'createdAt',
+        sortDir: 'DESC'
+      });
+      
+      setReviews(response.data.content || []);
+      setReviewsTotalPages(response.data.totalPages || 1);
+      setReviewsPage(page);
+    } catch (err) {
+      console.error('Failed to fetch reviews:', err);
+      setReviewsError('Failed to load reviews');
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
+  const handleReviewSubmitted = () => {
+    setShowReviewForm(false);
+    setEditingReview(null);
+    fetchReviews(0); // Refresh reviews and go to first page
+  };
+
+  const handleEditReview = (review) => {
+    setEditingReview(review);
+    setShowReviewForm(true);
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm('Are you sure you want to delete this review?')) {
+      return;
+    }
+
+    try {
+      await deleteReview(reviewId);
+      fetchReviews(reviewsPage); // Refresh current page
+    } catch (err) {
+      console.error('Failed to delete review:', err);
+      alert('Failed to delete review. Please try again.');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingReview(null);
+    setShowReviewForm(false);
+  };
+
+  const handleWriteReview = () => {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: `/properties/${id}` } });
+      return;
+    }
+    setShowReviewForm(true);
+  };
+
+  // Review Form Component
+const ReviewForm = () => {
+  const [rating, setRating] = useState(editingReview?.rating || 0);
+  const [comment, setComment] = useState(editingReview?.comment || '');
+  const [title, setTitle] = useState(editingReview?.title || '');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setReviewSubmitting(true);
+    setReviewError(null);
+
+    if (rating === 0) {
+      setReviewError('Please select a rating');
+      setReviewSubmitting(false);
+      return;
+    }
+
+    if (!comment.trim()) {
+      setReviewError('Please enter a comment');
+      setReviewSubmitting(false);
+      return;
+    }
+
+    try {
+      // Get the current user ID from context
+      const userId = user?.id || user?.userId;
+      
+      if (!userId) {
+        throw new Error('User not found. Please log in again.');
+      }
+
+      const reviewData = {
+        userId: parseInt(userId),
+        propertyId: parseInt(id),
+        rating: parseInt(rating),
+        comment: comment.trim(),
+        title: title.trim() || null
+      };
+
+      console.log('Submitting review data:', reviewData);
+
+      if (editingReview) {
+        await updateReview(editingReview.id, reviewData, []);
+      } else {
+        const formData = new FormData();
+        
+        // Convert the review data to JSON string and append as 'data'
+        formData.append('data', JSON.stringify(reviewData));
+        
+        // Note: If you want to upload files, you would add them here
+        // formData.append('files', file);
+        
+        console.log('FormData contents:');
+        for (let [key, value] of formData.entries()) {
+          console.log(key, value);
+        }
+        
+        await createReview(formData);
+      }
+
+      // Reset form
+      setRating(0);
+      setComment('');
+      setTitle('');
+      
+      handleReviewSubmitted();
+    } catch (err) {
+      console.error('Error in review submission:', err);
+      setReviewError(err.message || 'Failed to submit review. Please try again.');
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
+
+    return (
+      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h3 className="text-xl font-bold text-gray-900 mb-4">
+          {editingReview ? 'Edit Review' : 'Write a Review'}
+        </h3>
+        
+        <form onSubmit={handleSubmit}>
+          {/* Rating */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Rating *
+            </label>
+            <div className="flex space-x-1">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setRating(star)}
+                  className="text-2xl focus:outline-none transition-transform hover:scale-110"
+                >
+                  {star <= rating ? (
+                    <span className="text-yellow-400">★</span>
+                  ) : (
+                    <span className="text-gray-300">★</span>
+                  )}
+                </button>
+              ))}
+            </div>
+            {rating === 0 && (
+              <p className="text-red-500 text-sm mt-1">Please select a rating</p>
+            )}
+          </div>
+
+          {/* Title */}
+          <div className="mb-4">
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+              Review Title (Optional)
+            </label>
+            <input
+              type="text"
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#16A085] focus:border-transparent"
+              placeholder="Give your review a title..."
+              maxLength={100}
+            />
+            <p className="text-xs text-gray-500 mt-1">{title.length}/100 characters</p>
+          </div>
+
+          {/* Comment */}
+          <div className="mb-4">
+            <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
+              Review Comment *
+            </label>
+            <textarea
+              id="comment"
+              rows="4"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#16A085] focus:border-transparent"
+              placeholder="Share your experience with this property..."
+              required
+              maxLength={500}
+            />
+            <p className="text-xs text-gray-500 mt-1">{comment.length}/500 characters</p>
+          </div>
+
+          {/* Error Message */}
+          {reviewError && (
+            <div className="mb-4 bg-red-50 border-l-4 border-red-500 p-4 rounded">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">{reviewError}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Buttons */}
+          <div className="flex justify-end space-x-3">
+            <button
+              type="button"
+              onClick={handleCancelEdit}
+              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#16A085] transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={reviewSubmitting || rating === 0 || !comment.trim()}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-[#16A085] to-[#2C3E50] hover:from-[#138871] hover:to-[#1a5f4f] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#16A085] disabled:opacity-50 transition-colors"
+            >
+              {reviewSubmitting ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {editingReview ? 'Updating...' : 'Submitting...'}
+                </>
+              ) : (
+                editingReview ? 'Update Review' : 'Submit Review'
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    );
+  };
+
+  // Review List Component
+  const ReviewList = () => {
+    const formatDate = (dateString) => {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    };
+
+    const renderStars = (rating) => {
+      return (
+        <div className="flex space-x-1">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <span
+              key={star}
+              className={`text-lg ${
+                star <= rating ? 'text-yellow-400' : 'text-gray-300'
+              }`}
+            >
+              ★
+            </span>
+          ))}
+        </div>
+      );
+    };
+
+    if (!reviews || reviews.length === 0) {
+      return (
+        <div className="text-center py-8">
+          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">No reviews yet</h3>
+          <p className="mt-1 text-sm text-gray-500">Be the first to share your experience!</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        {reviews.map((review) => (
+          <div key={review.id} className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex-1">
+                {review.title && (
+                  <h4 className="text-lg font-semibold text-gray-900 mb-1">
+                    {review.title}
+                  </h4>
+                )}
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-gradient-to-r from-[#16A085] to-[#2C3E50] rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                      {review.userName ? review.userName.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                    <span className="text-sm font-medium text-gray-900">
+                      {review.userName || 'Anonymous User'}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {renderStars(review.rating)}
+                    <span className="text-sm text-gray-500">
+                      {formatDate(review.createdAt)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Action Buttons - Show only for review owner or admin */}
+              {(user?.id === review.userId || user?.role === 'ADMIN') && (
+                <div className="flex space-x-2">
+                  {user?.id === review.userId && (
+                    <button
+                      onClick={() => handleEditReview(review)}
+                      className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
+                    >
+                      Edit
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleDeleteReview(review.id)}
+                    className="text-red-600 hover:text-red-800 text-sm font-medium transition-colors"
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <p className="text-gray-700 mb-4 leading-relaxed">{review.comment}</p>
+
+            {/* Review Image */}
+            {review.imageUrl && (
+              <div className="mt-4">
+                <img
+                  src={review.imageUrl}
+                  alt="Review"
+                  className="h-40 w-auto object-cover rounded-md cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => window.open(review.imageUrl, '_blank')}
+                />
+              </div>
+            )}
+
+            {/* Updated indicator */}
+            {review.updatedAt && review.updatedAt !== review.createdAt && (
+              <p className="text-xs text-gray-500 mt-2">
+                Updated on {formatDate(review.updatedAt)}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+    );
   };
 
   // Format currency for Indian Rupees
@@ -633,6 +1016,96 @@ const PropertyDetail = () => {
           </div>
         </div>
 
+        {/* Reviews Section */}
+        <div className="mt-12 bg-white rounded-2xl shadow-xl overflow-hidden p-6">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800">Customer Reviews</h2>
+              <p className="text-gray-600 mt-1">
+                {reviews.length > 0 
+                  ? `Based on ${reviews.length} review${reviews.length !== 1 ? 's' : ''}`
+                  : 'No reviews yet'
+                }
+              </p>
+            </div>
+            {isAuthenticated && !showReviewForm && (
+              <button
+                onClick={handleWriteReview}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-[#16A085] to-[#2C3E50] hover:from-[#138871] hover:to-[#1a5f4f] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#16A085] transition-colors"
+              >
+                <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Write a Review
+              </button>
+            )}
+          </div>
+
+          {/* Review Form */}
+          {showReviewForm && <ReviewForm />}
+
+          {/* Reviews Error */}
+          {reviewsError && (
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded mb-6">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">{reviewsError}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Reviews List */}
+          {!showReviewForm && (
+            <>
+              <ReviewList />
+
+              {/* Reviews Pagination */}
+              {reviews.length > 0 && reviewsTotalPages > 1 && (
+                <div className="mt-6 flex justify-between items-center">
+                  <button
+                    onClick={() => fetchReviews(reviewsPage - 1)}
+                    disabled={reviewsPage === 0}
+                    className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                      reviewsPage === 0
+                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                        : 'bg-[#16A085] text-white hover:bg-[#138871]'
+                    }`}
+                  >
+                    Previous
+                  </button>
+                  <span className="text-sm text-gray-600">
+                    Page {reviewsPage + 1} of {reviewsTotalPages}
+                  </span>
+                  <button
+                    onClick={() => fetchReviews(reviewsPage + 1)}
+                    disabled={reviewsPage >= reviewsTotalPages - 1}
+                    className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                      reviewsPage >= reviewsTotalPages - 1
+                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                        : 'bg-[#16A085] text-white hover:bg-[#138871]'
+                    }`}
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+
+              {/* Loading State for Reviews */}
+              {reviewsLoading && (
+                <div className="flex justify-center items-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#16A085]"></div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
         {/* Additional Information */}
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="bg-white rounded-xl shadow-md p-6">
@@ -951,6 +1424,5 @@ const PropertyDetail = () => {
     </div>
   );
 };
-
 
 export default PropertyDetail;
