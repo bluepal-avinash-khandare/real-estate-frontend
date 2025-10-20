@@ -47,6 +47,8 @@ import Footer from './components/common/Footer';
 import Sidebar from './components/common/Sidebar';
 import RegisterChoice from './pages/auth/RegisterChoice';
 import AgentRegister from './pages/auth/AgentRegister';
+import About from './pages/about/About';
+import Contact from './pages/contact/Contact';
 
 // Create a separate ProtectedRoute component
 const ProtectedRoute = ({ children, roles }) => {
@@ -127,6 +129,9 @@ const App = () => {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/register-agent" element={<AgentRegister />} />
           <Route path="/register-choice" element={<RegisterChoice />} />
+
+<Route path="/about" element={<About />} />
+<Route path="/contact" element={<Contact />} />
 
 
           
@@ -352,6 +357,9 @@ const App = () => {
           
           {/* Unauthorized Route */}
           <Route path="/unauthorized" element={<Unauthorized />} />
+
+
+
           
           {/* Fallback Route */}
           <Route path="*" element={<Navigate to="/" replace />} />
