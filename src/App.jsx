@@ -40,7 +40,8 @@ import UpdateUser from './pages/users/UpdateUser';
 import Profile from './pages/users/Profile';
 import UploadProfileImage from './pages/users/UploadProfileImage';
 import UsersReport from './pages/users/UsersReport';
-
+// In App.js, update the import path
+import AgentSubscription from './pages/agent/AgentSubscription';
 // Import new chat components
 import AgentMessages from './pages/agent/AgentMessages';
 import CustomerMessages from './pages/users/CustomerMessages';
@@ -413,6 +414,16 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+
+          // Add this route in the Agent Routes section
+<Route
+  path="/agent/subscription"
+  element={
+    <ProtectedRoute roles={['AGENT']}>
+      <AgentSubscription />
+    </ProtectedRoute>
+  }
+/>
           
           {/* Unauthorized Route */}
           <Route path="/unauthorized" element={<Unauthorized />} />
