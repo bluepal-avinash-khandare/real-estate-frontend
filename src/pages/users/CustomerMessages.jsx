@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { AuthContext } from '../../contexts/AuthContext';
 import { getMessagesForThread, sendMessage, getMyChatThreads } from '../../services/messageService';
 import MessageForm from '../../components/forms/MessageForm';
@@ -75,7 +75,13 @@ const CustomerMessages = () => {
               </div>
               <div className="p-4">
                 {threads.length === 0 ? (
-                  <p className="text-gray-500 text-sm">No conversations yet</p>
+                  <div className="text-center py-8">
+                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    <p className="mt-2 text-gray-500">No conversations yet</p>
+                    <p className="text-sm text-gray-400 mt-1">Start a conversation with an agent</p>
+                  </div>
                 ) : (
                   <div className="space-y-2">
                     {threads.map((thread) => (
@@ -108,10 +114,10 @@ const CustomerMessages = () => {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
               <div className="p-6 border-b border-gray-200">
                 <h1 className="text-2xl font-bold text-gray-900">
-                  {threadId ? `Chat Thread #${threadId}` : 'Select a conversation'}
+                  {threadId ? `Chat Thread #${threadId}` : 'Messages'}
                 </h1>
                 <p className="text-gray-600">
-                  {threadId ? 'Chat with your agent' : 'Choose a conversation from the sidebar'}
+                  {threadId ? 'Chat with your agent' : 'Select a conversation from the sidebar'}
                 </p>
               </div>
 

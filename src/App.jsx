@@ -290,10 +290,10 @@ const App = () => {
           
           {/* Agent Chat Routes */}
           <Route
-            path="/agent/start-chat"
+            path="/agent/messages"
             element={
               <ProtectedRoute roles={['AGENT']}>
-                <StartChat />
+                <AgentMessages />
               </ProtectedRoute>
             }
           />
@@ -302,6 +302,14 @@ const App = () => {
             element={
               <ProtectedRoute roles={['AGENT']}>
                 <AgentMessages />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/agent/start-chat"
+            element={
+              <ProtectedRoute roles={['AGENT']}>
+                <StartChat />
               </ProtectedRoute>
             }
           />
