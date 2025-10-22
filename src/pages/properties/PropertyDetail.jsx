@@ -14,7 +14,7 @@ const PropertyDetail = () => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [showContactPopup, setShowContactPopup] = useState(false);
   const [hasPaid, setHasPaid] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState(null); // Track payment status
+  const [paymentStatus, setPaymentStatus] = useState(null);
   const [showAppointmentForm, setShowAppointmentForm] = useState(false);
   const [appointmentDate, setAppointmentDate] = useState('');
   const [appointmentTime, setAppointmentTime] = useState('');
@@ -64,14 +64,12 @@ const PropertyDetail = () => {
 
   // Function to check payment status
   const checkPaymentStatus = () => {
-    // Check if user is authenticated
     if (!isAuthenticated || !user) {
       setHasPaid(false);
       setPaymentStatus(null);
       return;
     }
     
-    // Try to get payment status from localStorage
     const paymentKey = `payment_${id}_user_${user.userId || user.id}`;
     const paymentData = localStorage.getItem(paymentKey);
     
@@ -103,11 +101,9 @@ const PropertyDetail = () => {
       
       const paymentData = JSON.parse(paymentDataString);
       
-      // Verify payment with backend
       const verificationResponse = await verifyPayment({ paymentId: paymentData.paymentId });
       
       if (verificationResponse.success && verificationResponse.data.verified) {
-        // Update localStorage with verified status
         const updatedPaymentData = {
           ...paymentData,
           paid: true,
@@ -118,7 +114,6 @@ const PropertyDetail = () => {
         setHasPaid(true);
         setPaymentStatus('PAID');
       } else if (verificationResponse.data.status === 'PENDING') {
-        // Update localStorage with pending status
         const updatedPaymentData = {
           ...paymentData,
           paid: false,
@@ -164,7 +159,7 @@ const PropertyDetail = () => {
   const handleReviewSubmitted = () => {
     setShowReviewForm(false);
     setEditingReview(null);
-    fetchReviews(0); // Refresh reviews and go to first page
+    fetchReviews(0);
   };
 
   const handleEditReview = (review) => {
@@ -179,7 +174,7 @@ const PropertyDetail = () => {
 
     try {
       await deleteReview(reviewId);
-      fetchReviews(reviewsPage); // Refresh current page
+      fetchReviews(reviewsPage);
     } catch (err) {
       console.error('Failed to delete review:', err);
       alert('Failed to delete review. Please try again.');
@@ -200,79 +195,71 @@ const PropertyDetail = () => {
   };
 
   // Review Form Component
-const ReviewForm = () => {
-  const [rating, setRating] = useState(editingReview?.rating || 0);
-  const [comment, setComment] = useState(editingReview?.comment || '');
-  const [title, setTitle] = useState(editingReview?.title || '');
+  const ReviewForm = () => {
+    const [rating, setRating] = useState(editingReview?.rating || 0);
+    const [comment, setComment] = useState(editingReview?.comment || '');
+    const [title, setTitle] = useState(editingReview?.title || '');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setReviewSubmitting(true);
-    setReviewError(null);
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      setReviewSubmitting(true);
+      setReviewError(null);
 
-    if (rating === 0) {
-      setReviewError('Please select a rating');
-      setReviewSubmitting(false);
-      return;
-    }
-
-    if (!comment.trim()) {
-      setReviewError('Please enter a comment');
-      setReviewSubmitting(false);
-      return;
-    }
-
-    try {
-      // Get the current user ID from context
-      const userId = user?.id || user?.userId;
-      
-      if (!userId) {
-        throw new Error('User not found. Please log in again.');
+      if (rating === 0) {
+        setReviewError('Please select a rating');
+        setReviewSubmitting(false);
+        return;
       }
 
-      const reviewData = {
-        userId: parseInt(userId),
-        propertyId: parseInt(id),
-        rating: parseInt(rating),
-        comment: comment.trim(),
-        title: title.trim() || null
-      };
+      if (!comment.trim()) {
+        setReviewError('Please enter a comment');
+        setReviewSubmitting(false);
+        return;
+      }
 
-      console.log('Submitting review data:', reviewData);
-
-      if (editingReview) {
-        await updateReview(editingReview.id, reviewData, []);
-      } else {
-        const formData = new FormData();
+      try {
+        const userId = user?.id || user?.userId;
         
-        // Convert the review data to JSON string and append as 'data'
-        formData.append('data', JSON.stringify(reviewData));
-        
-        // Note: If you want to upload files, you would add them here
-        // formData.append('files', file);
-        
-        console.log('FormData contents:');
-        for (let [key, value] of formData.entries()) {
-          console.log(key, value);
+        if (!userId) {
+          throw new Error('User not found. Please log in again.');
         }
+
+        const reviewData = {
+          userId: parseInt(userId),
+          propertyId: parseInt(id),
+          rating: parseInt(rating),
+          comment: comment.trim(),
+          title: title.trim() || null
+        };
+
+        console.log('Submitting review data:', reviewData);
+
+        if (editingReview) {
+          await updateReview(editingReview.id, reviewData, []);
+        } else {
+          const formData = new FormData();
+          formData.append('data', JSON.stringify(reviewData));
+          
+          console.log('FormData contents:');
+          for (let [key, value] of formData.entries()) {
+            console.log(key, value);
+          }
+          
+          await createReview(formData);
+        }
+
+        setRating(0);
+        setComment('');
+        setTitle('');
         
-        await createReview(formData);
+        handleReviewSubmitted();
+      } catch (err) {
+        console.error('Error in review submission:', err);
+        setReviewError(err.message || 'Failed to submit review. Please try again.');
+      } finally {
+        setReviewSubmitting(false);
       }
-
-      // Reset form
-      setRating(0);
-      setComment('');
-      setTitle('');
-      
-      handleReviewSubmitted();
-    } catch (err) {
-      console.error('Error in review submission:', err);
-      setReviewError(err.message || 'Failed to submit review. Please try again.');
-    } finally {
-      setReviewSubmitting(false);
-    }
-  };
-
+    };
 
     return (
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -458,7 +445,6 @@ const ReviewForm = () => {
                 </div>
               </div>
               
-              {/* Action Buttons - Show only for review owner or admin */}
               {(user?.id === review.userId || user?.role === 'ADMIN') && (
                 <div className="flex space-x-2">
                   {user?.id === review.userId && (
@@ -481,7 +467,6 @@ const ReviewForm = () => {
 
             <p className="text-gray-700 mb-4 leading-relaxed">{review.comment}</p>
 
-            {/* Review Image */}
             {review.imageUrl && (
               <div className="mt-4">
                 <img
@@ -493,7 +478,6 @@ const ReviewForm = () => {
               </div>
             )}
 
-            {/* Updated indicator */}
             {review.updatedAt && review.updatedAt !== review.createdAt && (
               <p className="text-xs text-gray-500 mt-2">
                 Updated on {formatDate(review.updatedAt)}
@@ -509,10 +493,8 @@ const ReviewForm = () => {
   const formatCurrency = (amount) => {
     if (!amount) return '₹0';
     
-    // Convert to number if it's a string
     const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
     
-    // Format with Indian number system
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
@@ -525,7 +507,7 @@ const ReviewForm = () => {
   const handlePayment = () => {
     navigate('/initiate-payment', {
       state: {
-        amount: 200,
+        amount: 500,
         gateway: 'razorpay',
         propertyId: id
       }
@@ -540,19 +522,16 @@ const ReviewForm = () => {
     setPaymentVerificationError(null);
     
     try {
-      // Validate user is authenticated
       if (!isAuthenticated || !user) {
         throw new Error('You must be logged in to schedule an appointment');
       }
       
-      // Get user ID
       const userId = user.userId || user.id;
       
       if (!userId) {
         throw new Error('User ID not found. Please log in again.');
       }
       
-      // Check if user has already paid for this property
       const paymentKey = `payment_${id}_user_${userId}`;
       const paymentDataString = localStorage.getItem(paymentKey);
       
@@ -562,30 +541,24 @@ const ReviewForm = () => {
       
       const paymentData = JSON.parse(paymentDataString);
       
-      // Check if payment is still pending
       if (!paymentData.paid) {
         throw new Error('Your payment is still being processed. Please try again later.');
       }
       
-      // Verify payment with backend using the original payment ID (order ID)
       try {
         console.log('Verifying payment with ID:', paymentData.paymentId);
         const verificationResponse = await verifyPayment({ paymentId: paymentData.paymentId });
         console.log('Verification response:', verificationResponse);
         
-        // FIXED: Check if verification was successful based on actual response structure
         if (verificationResponse.success) {
-          // Payment is verified, proceed with appointment
           console.log('Payment verified successfully');
         } else {
-          // Payment verification failed
           console.error('Payment verification failed:', verificationResponse);
           throw new Error('Payment verification failed. Please make the payment again.');
         }
       } catch (verificationError) {
         console.error('Payment verification error:', verificationError);
         
-        // Handle specific error messages from the backend
         if (verificationError.response && verificationError.response.data) {
           const errorData = verificationError.response.data;
           console.error('Error response data:', errorData);
@@ -607,7 +580,6 @@ const ReviewForm = () => {
         return;
       }
       
-      // Prepare appointment data
       const appointmentData = {
         customerId: userId,
         propertyId: id,
@@ -615,24 +587,21 @@ const ReviewForm = () => {
         date: appointmentDate,
         time: appointmentTime,
         message: appointmentMessage,
-        paymentToken: paymentData.paymentId // Use paymentId as the token
+        paymentToken: paymentData.paymentId
       };
       
       console.log('Submitting appointment:', appointmentData);
       
-      // Call API to create appointment
       const response = await requestAppointment(appointmentData);
       console.log('Appointment response:', response);
       
       setAppointmentSuccess(true);
       setAppointmentError(null);
       
-      // Reset form
       setAppointmentDate('');
       setAppointmentTime('');
       setAppointmentMessage('');
       
-      // Close the form after a delay
       setTimeout(() => {
         setShowAppointmentForm(false);
         setAppointmentSuccess(false);
@@ -643,8 +612,6 @@ const ReviewForm = () => {
       let errorMessage = 'Failed to submit appointment request';
       
       if (err.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
         console.error('Error response data:', err.response.data);
         console.error('Error response status:', err.response.status);
         
@@ -654,11 +621,9 @@ const ReviewForm = () => {
           errorMessage = err.response.data.message;
         }
       } else if (err.request) {
-        // The request was made but no response was received
         console.error('Error request:', err.request);
         errorMessage = 'Network error. Please check your internet connection.';
       } else {
-        // Something happened in setting up the request that triggered an Error
         console.error('Error message:', err.message);
         errorMessage = err.message || 'An unexpected error occurred.';
       }
@@ -773,243 +738,278 @@ const ReviewForm = () => {
           </ol>
         </nav>
 
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          <div className="md:flex">
-            {/* Left Side - Image Gallery */}
-            <div className="md:w-1/2">
-              {hasImages ? (
-                <div className="relative">
-                  {/* Main Image */}
-                  <div className="h-96 bg-gray-200">
-                    <img 
-                      src={imageUrls[activeImageIndex]} 
-                      alt={property.title} 
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.onerror = null; 
-                        e.target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTQgMTZsNC41ODYtNC41ODZhMiAyIDAgMDEyLjgyOCAwTDE2IDE2bTItMmwxLjU4Ni0xLjU4NmEyIDIgMCAwMTIuODI4IDBMMjAgMTRtLTYtNmguMDFNNiAyMGgxMmEyIDIgMCAwMDItMlY2YTIgMiAwIDAwLTItMkg2YTIgMiAwIDAwLTIgMnYxMmEyIDIgMCAwMDIgMnoiLz48L3N2Zz4=';
-                      }}
-                    />
-                  </div>
-                  
-                  {/* Thumbnail Gallery */}
-                  {imageUrls.length > 1 && (
-                    <div className="flex p-4 space-x-2 overflow-x-auto">
-                      {imageUrls.map((imageUrl, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setActiveImageIndex(index)}
-                          className={`flex-shrink-0 h-20 w-20 rounded-md overflow-hidden border-2 ${
-                            activeImageIndex === index ? 'border-[#16A085]' : 'border-transparent'
-                          }`}
-                        >
-                          <img 
-                            src={imageUrl} 
-                            alt={`Property view ${index + 1}`} 
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.target.onerror = null; 
-                              e.target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik00IDE2bDQuNTg2LTQuNTg2YTIgMiAwIDAxMi44MjggMEwxNiAxNm0yLTJsMS41ODYtMS41ODZhMiAyIDAgMDEyLjgyOCAwTDIwIDE0bTYtNmguMDFNNiAyMGgxMmEyIDIgMCAwMDItMlY2YTIgMiAwIDAwLTItMkg2YTIgMiAwIDAwLTIgMnYxMmEyIDIgMCAwMDIgMnoiLz48L3N2Zz4=';
-                            }}
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="h-96 bg-gray-200 flex items-center justify-center">
-                  <div className="text-center">
-                    <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        {/* Image Gallery Section - TOP */}
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-8">
+          {hasImages ? (
+            <div className="relative">
+              {/* Main Image */}
+              <div className="h-96 bg-gray-200">
+                <img 
+                  src={imageUrls[activeImageIndex]} 
+                  alt={property.title} 
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null; 
+                    e.target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTQgMTZsNC41ODYtNC41ODZhMiAyIDAgMDEyLjgyOCAwTDE2IDE2bTItMmwxLjU4Ni0xLjU4NmEyIDIgMCAwMTIuODI4IDBMMjAgMTRtLTYtNmguMDFNNiAyMGgxMmEyIDIgMCAwMDItMlY2YTIgMiAwIDAwLTItMkg2YTIgMiAwIDAwLTIgMnYxMmEyIDIgMCAwMDIgMnoiLz48L3N2Zz4=';
+                  }}
+                />
+              </div>
+              
+              {/* Navigation Arrows for large screens */}
+              {imageUrls.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setActiveImageIndex((prev) => (prev === 0 ? imageUrls.length - 1 : prev - 1))}
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-70 transition-all hidden md:block"
+                  >
+                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                     </svg>
-                    <p className="mt-2 text-gray-500">No images available</p>
-                  </div>
+                  </button>
+                  <button
+                    onClick={() => setActiveImageIndex((prev) => (prev === imageUrls.length - 1 ? 0 : prev + 1))}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-70 transition-all hidden md:block"
+                  >
+                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </>
+              )}
+              
+              {/* Image Counter */}
+              {imageUrls.length > 1 && (
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+                  {activeImageIndex + 1} / {imageUrls.length}
+                </div>
+              )}
+              
+              {/* Thumbnail Gallery */}
+              {imageUrls.length > 1 && (
+                <div className="flex p-4 space-x-2 overflow-x-auto bg-gray-50">
+                  {imageUrls.map((imageUrl, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setActiveImageIndex(index)}
+                      className={`flex-shrink-0 h-20 w-20 rounded-md overflow-hidden border-2 transition-all ${
+                        activeImageIndex === index 
+                          ? 'border-[#16A085] scale-105' 
+                          : 'border-transparent hover:border-gray-300'
+                      }`}
+                    >
+                      <img 
+                        src={imageUrl} 
+                        alt={`Property view ${index + 1}`} 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.onerror = null; 
+                          e.target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik00IDE2bDQuNTg2LTQuNTg2YTIgMiAwIDAxMi44MjggMEwxNiAxNm0yLTJsMS41ODYtMS41ODZhMiAyIDAgMDEyLjgyOCAwTDIwIDE0bTYtNmguMDFNNiAyMGgxMmEyIDIgMCAwMDItMlY2YTIgMiAwIDAwLTItMkg2YTIgMiAwIDAwLTIgMnYxMmEyIDIgMCAwMDIgMnoiLz48L3N2Zz4=';
+                        }}
+                      />
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
+          ) : (
+            <div className="h-96 bg-gray-200 flex items-center justify-center">
+              <div className="text-center">
+                <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <p className="mt-2 text-gray-500">No images available</p>
+              </div>
+            </div>
+          )}
+        </div>
 
-            {/* Right Side - Property Details */}
-            <div className="md:w-1/2 p-8">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{property.title}</h1>
-                  <div className="flex items-center text-gray-600 mb-4">
-                    <svg className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    {property.address || 'Location not specified'}
+        {/* Property Details Section - BOTTOM */}
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+          <div className="p-8">
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-8">
+              {/* Left Column - Main Details */}
+              <div className="flex-1">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
+                  <div>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{property.title}</h1>
+                    <div className="flex items-center text-gray-600 mb-4">
+                      <svg className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      {property.address || 'Location not specified'}
+                    </div>
                   </div>
-                </div>
-                <div className="text-right">
-                  {hasOffer ? (
-                    <>
-                      <div className="text-2xl font-bold text-[#16A085]">
-                        {property.offerPrice ? formatCurrency(property.offerPrice) : 'Price not set'}
-                      </div>
-                      <div className="text-lg text-gray-500 line-through">
+                  <div className="text-right">
+                    {hasOffer ? (
+                      <>
+                        <div className="text-2xl font-bold text-[#16A085]">
+                          {property.offerPrice ? formatCurrency(property.offerPrice) : 'Price not set'}
+                        </div>
+                        <div className="text-lg text-gray-500 line-through">
+                          {property.price ? formatCurrency(property.price) : 'Price not set'}
+                        </div>
+                        <div className="text-sm font-medium text-red-600 mt-1">
+                          Save {property.offerPercentage}%
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-3xl font-bold text-[#16A085]">
                         {property.price ? formatCurrency(property.price) : 'Price not set'}
                       </div>
-                      <div className="text-sm font-medium text-red-600 mt-1">
-                        Save {property.offerPercentage}%
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-3xl font-bold text-[#16A085]">
-                      {property.price ? formatCurrency(property.price) : 'Price not set'}
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {/* Status Badge */}
-              <div className="mb-6">
-                <span className={`px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${
-                  property.status === 'available' ? 'bg-green-100 text-green-800' : 
-                  property.status === 'sold' ? 'bg-red-100 text-red-800' : 
-                  property.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {property.status || 'Available'}
-                </span>
-              </div>
-
-              {/* Property Description */}
-              <div className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-3">Description</h2>
-                <p className="text-gray-600">{property.description || 'No description available'}</p>
-              </div>
-
-              {/* Property Features */}
-              <div className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-3">Features</h2>
-                <div className="grid grid-cols-2 gap-4">
-                  {property.bedrooms && (
-                    <div className="flex items-center">
-                      <svg className="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                      </svg>
-                      <span className="text-gray-600">{property.bedrooms} Bedrooms</span>
-                    </div>
-                  )}
-                  {property.bathrooms && (
-                    <div className="flex items-center">
-                      <svg className="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <span className="text-gray-600">{property.bathrooms} Bathrooms</span>
-                    </div>
-                  )}
-                  {property.area && (
-                    <div className="flex items-center">
-                      <svg className="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5-5M4 4v4m11-1v4m0 0h-4m-4 0l-5-5" />
-                      </svg>
-                      <span className="text-gray-600">{property.area} sq ft</span>
-                    </div>
-                  )}
-                  {property.balcony && (
-                    <div className="flex items-center">
-                      <svg className="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <span className="text-gray-600">{property.balcony} Balconies</span>
-                    </div>
-                  )}
-                  {property.floor && (
-                    <div className="flex items-center">
-                      <svg className="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <span className="text-gray-600">Floor {property.floor}</span>
-                    </div>
-                  )}
+                {/* Status Badge */}
+                <div className="mb-6">
+                  <span className={`px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${
+                    property.status === 'available' ? 'bg-green-100 text-green-800' : 
+                    property.status === 'sold' ? 'bg-red-100 text-red-800' : 
+                    property.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {property.status || 'Available'}
+                  </span>
                 </div>
-              </div>
 
-              {/* Nearby Places */}
-              {property.nearby && (
+                {/* Property Description */}
                 <div className="mb-8">
-                  <h2 className="text-xl font-bold text-gray-900 mb-3">Nearby Places</h2>
-                  <p className="text-gray-600">{property.nearby}</p>
+                  <h2 className="text-xl font-bold text-gray-900 mb-3">Description</h2>
+                  <p className="text-gray-600 leading-relaxed">{property.description || 'No description available'}</p>
                 </div>
-              )}
 
-              {/* Offer Details */}
-              {hasOffer && (
-                <div className="mb-8 bg-yellow-50 rounded-lg p-6 border border-yellow-200">
-                  <h2 className="text-xl font-bold text-gray-900 mb-3">Special Offer</h2>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-600">Limited time offer</p>
-                      <p className="text-sm text-gray-500 mt-1">
+                {/* Property Features */}
+                <div className="mb-8">
+                  <h2 className="text-xl font-bold text-gray-900 mb-3">Features</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {property.bedrooms && (
+                      <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <svg className="h-5 w-5 text-gray-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                        <span className="text-gray-600">{property.bedrooms} Bedrooms</span>
+                      </div>
+                    )}
+                    {property.bathrooms && (
+                      <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <svg className="h-5 w-5 text-gray-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span className="text-gray-600">{property.bathrooms} Bathrooms</span>
+                      </div>
+                    )}
+                    {property.area && (
+                      <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <svg className="h-5 w-5 text-gray-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5-5M4 4v4m11-1v4m0 0h-4m-4 0l-5-5" />
+                        </svg>
+                        <span className="text-gray-600">{property.area} sq ft</span>
+                      </div>
+                    )}
+                    {property.balcony && (
+                      <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <svg className="h-5 w-5 text-gray-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span className="text-gray-600">{property.balcony} Balconies</span>
+                      </div>
+                    )}
+                    {property.floor && (
+                      <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <svg className="h-5 w-5 text-gray-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span className="text-gray-600">Floor {property.floor}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Nearby Places */}
+                {property.nearby && (
+                  <div className="mb-8">
+                    <h2 className="text-xl font-bold text-gray-900 mb-3">Nearby Places</h2>
+                    <p className="text-gray-600">{property.nearby}</p>
+                  </div>
+                )}
+
+                {/* Amenities */}
+                {property.amenities && property.amenities.length > 0 && (
+                  <div className="mb-8">
+                    <h2 className="text-xl font-bold text-gray-900 mb-3">Amenities</h2>
+                    <div className="flex flex-wrap gap-2">
+                      {property.amenities.map((amenity, index) => (
+                        <span key={index} className="px-3 py-1 bg-blue-50 text-blue-700 text-sm font-medium rounded-full">
+                          {amenity}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Right Column - Contact & Additional Info */}
+              <div className="lg:w-80 flex-shrink-0">
+                {/* Offer Details */}
+                {hasOffer && (
+                  <div className="mb-6 bg-yellow-50 rounded-lg p-6 border border-yellow-200">
+                    <h2 className="text-xl font-bold text-gray-900 mb-3">Special Offer</h2>
+                    <div className="space-y-2">
+                      <p className="text-gray-600 text-sm">Limited time offer</p>
+                      <p className="text-sm text-gray-500">
                         Original Price: {property.price ? formatCurrency(property.price) : 'Price not set'}
                       </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-[#16A085]">
-                        {property.offerPrice ? formatCurrency(property.offerPrice) : 'Price not set'}
-                      </p>
-                      <p className="text-sm font-medium text-red-600 mt-1">
-                        {property.offerPercentage}% OFF
-                      </p>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-[#16A085]">
+                          {property.offerPrice ? formatCurrency(property.offerPrice) : 'Price not set'}
+                        </p>
+                        <p className="text-sm font-medium text-red-600 mt-1">
+                          {property.offerPercentage}% OFF
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Amenities */}
-              {property.amenities && property.amenities.length > 0 && (
-                <div className="mb-8">
-                  <h2 className="text-xl font-bold text-gray-900 mb-3">Amenities</h2>
-                  <div className="flex flex-wrap gap-2">
-                    {property.amenities.map((amenity, index) => (
-                      <span key={index} className="px-3 py-1 bg-blue-50 text-blue-700 text-sm font-medium rounded-full">
-                        {amenity}
-                      </span>
-                    ))}
+                {/* Contact Information */}
+                <div className="bg-gray-50 rounded-lg p-6 sticky top-4">
+                  <h2 className="text-xl font-bold text-gray-900 mb-3">Contact Information</h2>
+                  <div className="space-y-3">
+                    {property.agentName && (
+                      <div className="flex items-center">
+                        <svg className="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span className="text-gray-600">{property.agentName}</span>
+                      </div>
+                    )}
+                    {property.agentEmail && (
+                      <div className="flex items-center">
+                        <svg className="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        <span className="text-gray-600">{property.agentEmail}</span>
+                      </div>
+                    )}
+                    {property.agentPhone && (
+                      <div className="flex items-center">
+                        <svg className="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.684.949V17a2 2 0 01-2 2H5a2 2 0 01-2-2V5z" />
+                        </svg>
+                        <span className="text-gray-600">{property.agentPhone}</span>
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
-
-              {/* Contact Information */}
-              <div className="bg-gray-50 rounded-lg p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-3">Contact Information</h2>
-                <div className="space-y-3">
-                  {property.agentName && (
-                    <div className="flex items-center">
-                      <svg className="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                      <span className="text-gray-600">{property.agentName}</span>
-                    </div>
-                  )}
-                  {property.agentEmail && (
-                    <div className="flex items-center">
-                      <svg className="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                      </svg>
-                      <span className="text-gray-600">{property.agentEmail}</span>
-                    </div>
-                  )}
-                  {property.agentPhone && (
-                    <div className="flex items-center">
-                      <svg className="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.684.949V17a2 2 0 01-2 2H5a2 2 0 01-2-2V5z" />
-                      </svg>
-                      <span className="text-gray-600">{property.agentPhone}</span>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="mt-6">
-                  <button 
-                    onClick={() => setShowContactPopup(true)}
-                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-[#16A085] to-[#2C3E50] hover:from-[#138871] hover:to-[#1a5f4f] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#16A085]"
-                  >
-                    {hasPaid ? "Schedule Appointment" : "Contact Agent"}
-                  </button>
+                  
+                  <div className="mt-6">
+                    <button 
+                      onClick={() => setShowContactPopup(true)}
+                      className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-[#16A085] to-[#2C3E50] hover:from-[#138871] hover:to-[#1a5f4f] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#16A085] transition-colors"
+                    >
+                      {hasPaid ? "Schedule Appointment" : "Contact Agent"}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1166,7 +1166,6 @@ const ReviewForm = () => {
               </div>
               
               {hasPaid ? (
-                // Show appointment form directly if payment is made
                 <form onSubmit={handleSubmitAppointment}>
                   <div className="space-y-4">
                     <div>
@@ -1236,7 +1235,6 @@ const ReviewForm = () => {
                   </div>
                 </form>
               ) : (
-                // Show payment option if payment not made
                 <>
                   <div className="space-y-4">
                     {property.agentName && (
