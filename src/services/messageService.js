@@ -10,7 +10,17 @@ export const sendMessage = async (threadId, data) => {
   return response.data;
 };
 
-export const getMessagesForThread = async (threadId, params) => {
+export const getMessagesForThread = async (threadId, params = {}) => {
   const response = await api.get(`/messages/${threadId}`, { params });
+  return response.data;
+};
+
+export const getMyChatThreads = async (params = {}) => {
+  const response = await api.get('/messages/threads', { params });
+  return response.data;
+};
+
+export const markMessagesAsRead = async (threadId) => {
+  const response = await api.patch(`/messages/${threadId}/read`);
   return response.data;
 };

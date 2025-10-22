@@ -41,6 +41,10 @@ import Profile from './pages/users/Profile';
 import UploadProfileImage from './pages/users/UploadProfileImage';
 import UsersReport from './pages/users/UsersReport';
 
+// Import new chat components
+import AgentMessages from './pages/agent/AgentMessages';
+import CustomerMessages from './pages/users/CustomerMessages';
+
 // Import layout components
 import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
@@ -96,7 +100,6 @@ const Unauthorized = () => {
   );
 };
 
-
 // Main Layout Component
 const MainLayout = ({ children }) => {
   const { isAuthenticated } = useContext(AuthContext);
@@ -132,7 +135,6 @@ const App = () => {
 
 <Route path="/about" element={<About />} />
 <Route path="/contact" element={<Contact />} />
-
 
           
           {/* Properties Routes */}
@@ -203,12 +205,27 @@ const App = () => {
           />
           <Route
             path="/request-appointment"
-            
             element={
-              
               <ProtectedRoute roles={['CUSTOMER']}>
-
                 <RequestAppointment />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Customer Chat Routes */}
+          <Route
+            path="/customer/messages"
+            element={
+              <ProtectedRoute roles={['CUSTOMER']}>
+                <CustomerMessages />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/customer/messages/:threadId"
+            element={
+              <ProtectedRoute roles={['CUSTOMER']}>
+                <CustomerMessages />
               </ProtectedRoute>
             }
           />
@@ -270,6 +287,26 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+          
+          {/* Agent Chat Routes */}
+          <Route
+            path="/agent/start-chat"
+            element={
+              <ProtectedRoute roles={['AGENT']}>
+                <StartChat />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/agent/messages/:threadId"
+            element={
+              <ProtectedRoute roles={['AGENT']}>
+                <AgentMessages />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Legacy Chat Routes (for backward compatibility) */}
           <Route
             path="/start-chat"
             element={
@@ -357,9 +394,6 @@ const App = () => {
           
           {/* Unauthorized Route */}
           <Route path="/unauthorized" element={<Unauthorized />} />
-
-
-
           
           {/* Fallback Route */}
           <Route path="*" element={<Navigate to="/" replace />} />
