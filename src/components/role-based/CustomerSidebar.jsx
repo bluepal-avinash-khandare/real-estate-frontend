@@ -126,10 +126,10 @@ const CustomerSidebar = ({ isExpanded }) => {
   const menuItems = [
     { path: '/dashboard', icon: 'dashboard', label: 'Dashboard' },
     { path: '/properties', icon: 'properties', label: 'Properties' },
-    { path: '/my-properties', icon: 'my-properties', label: 'My Properties' },
-    { path: '/reviews', icon: 'reviews', label: 'Reviews' },
-    { path: '/initiate-payment', icon: 'payment', label: 'Pay' },
-    { path: '/payment-history', icon: 'history', label: 'Payment History' },
+    // { path: '/my-properties', icon: 'my-properties', label: 'My Properties' },
+    // { path: '/reviews', icon: 'reviews', label: 'Reviews' },
+    // { path: '/initiate-payment', icon: 'payment', label: 'Pay' },
+    // { path: '/payment-history', icon: 'history', label: 'Payment History' },
     { path: '/request-appointment', icon: 'appointments', label: 'Appointments' },
     { path: '/profile', icon: 'profile', label: 'Profile' },
   ];
@@ -215,7 +215,7 @@ const CustomerSidebar = ({ isExpanded }) => {
             <span className="ml-3 font-medium">Saved Searches</span>
           )}
         </Link>
-        <Link
+        {/* <Link
           to="/favorites"
           className="flex items-center p-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-200"
         >
@@ -227,7 +227,7 @@ const CustomerSidebar = ({ isExpanded }) => {
           {isExpanded && (
             <span className="ml-3 font-medium">Favorites</span>
           )}
-        </Link>
+        </Link> */}
       </div>
     </nav>
   );

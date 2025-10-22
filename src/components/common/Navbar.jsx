@@ -203,7 +203,7 @@ const Navbar = () => {
                     <span className="ml-3">All Properties</span>
                   </Link>
                   <Link 
-                    to="/properties/luxury" 
+                    to="/properties" 
                     className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center"
                     onClick={() => setPropertiesDropdownOpen(false)}
                   >
@@ -211,7 +211,7 @@ const Navbar = () => {
                     <span className="ml-3">Luxury Homes</span>
                   </Link>
                   <Link 
-                    to="/properties/new" 
+                    to="/properties" 
                     className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center"
                     onClick={() => setPropertiesDropdownOpen(false)}
                   >
@@ -219,7 +219,7 @@ const Navbar = () => {
                     <span>New Developments</span>
                   </Link>
                   <Link 
-                    to="/properties/commercial" 
+                    to="/properties" 
                     className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-[#16A085]/10 hover:to-[#2C3E50]/10 transition-colors flex items-center"
                     onClick={() => setPropertiesDropdownOpen(false)}
                   >
@@ -230,7 +230,7 @@ const Navbar = () => {
               )}
             </div>
 
-            <Link to="/agents" className="relative text-gray-700 hover:text-[#16A085] font-medium transition-all duration-300 group">
+            {/* <Link to="/agents" className="relative text-gray-700 hover:text-[#16A085] font-medium transition-all duration-300 group">
               Agents
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#16A085] to-[#2C3E50] transition-all duration-300 group-hover:w-full"></span>
             </Link>
@@ -238,7 +238,7 @@ const Navbar = () => {
             <Link to="/services" className="relative text-gray-700 hover:text-[#16A085] font-medium transition-all duration-300 group">
               Services
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#16A085] to-[#2C3E50] transition-all duration-300 group-hover:w-full"></span>
-            </Link>
+            </Link> */}
 
             <Link to="/about" className="relative text-gray-700 hover:text-[#16A085] font-medium transition-all duration-300 group">
               About
@@ -408,15 +408,15 @@ const Navbar = () => {
                     {Icons.home}
                     <span className="ml-3">All Properties</span>
                   </Link>
-                  <Link to="/properties/luxury" className="block text-gray-600 hover:text-[#16A085] transition-colors flex items-center py-1">
+                  <Link to="/properties" className="block text-gray-600 hover:text-[#16A085] transition-colors flex items-center py-1">
                     {Icons.building}
                     <span className="ml-3">Luxury Homes</span>
                   </Link>
-                  <Link to="/properties/new" className="block text-gray-600 hover:text-[#16A085] transition-colors flex items-center py-1">
+                  <Link to="/properties" className="block text-gray-600 hover:text-[#16A085] transition-colors flex items-center py-1">
                     <div className="w-6 h-6 rounded-full bg-gradient-to-r from-[#16A085] to-[#2C3E50] flex items-center justify-center text-white text-xs mr-3">N</div>
                     <span>New Developments</span>
                   </Link>
-                  <Link to="/properties/commercial" className="block text-gray-600 hover:text-[#16A085] transition-colors flex items-center py-1">
+                  <Link to="/properties" className="block text-gray-600 hover:text-[#16A085] transition-colors flex items-center py-1">
                     <div className="w-6 h-6 rounded-full bg-gradient-to-r from-[#16A085] to-[#2C3E50] flex items-center justify-center text-white text-xs mr-3">C</div>
                     <span>Commercial</span>
                   </Link>
