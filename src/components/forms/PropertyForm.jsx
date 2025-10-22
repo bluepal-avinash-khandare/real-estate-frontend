@@ -431,18 +431,6 @@ const PropertyForm = ({ initialValues, onSubmit }) => {
                 />
               </div>
 
-              {/* Rented Status */}
-              {/* <div className="flex items-center">
-                <Field
-                  id="rented"
-                  name="rented"
-                  type="checkbox"
-                  className="h-4 w-4 text-[#16A085] focus:ring-[#16A085] border-gray-300 rounded"
-                />
-                <label htmlFor="rented" className="ml-2 block text-sm text-gray-700">
-                  Already Rented
-                </label>
-              </div> */}
 
               {/* Rented By Field - Only show if rented is true */}
               {values.rented && (
