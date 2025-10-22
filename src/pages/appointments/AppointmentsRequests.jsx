@@ -1481,7 +1481,7 @@ const AppointmentsRequests = () => {
           </div>
         </div>
 
-        {/* Debug Information */}
+        {/* Debug Information
         <div className="mb-6 bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
           <div className="flex">
             <div className="flex-shrink-0">
@@ -1503,7 +1503,7 @@ const AppointmentsRequests = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Main Content */}
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
