@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { propertySchema } from "../../utils/validationSchemas";
@@ -7,6 +8,7 @@ const PropertyForm = ({ initialValues, onSubmit }) => {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [documentPreviews, setDocumentPreviews] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   // Cleanup object URLs to prevent memory leaks
   useEffect(() => {
@@ -58,6 +60,7 @@ const PropertyForm = ({ initialValues, onSubmit }) => {
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     setIsSubmitting(true);
+    setShowSuccess(false);
     try {
       await onSubmit(values);
       resetForm();
@@ -68,7 +71,13 @@ const PropertyForm = ({ initialValues, onSubmit }) => {
       setImagePreviews([]);
       setDocumentPreviews([]);
 
-      alert("Property created successfully!");
+      // Show success message
+      setShowSuccess(true);
+      
+      // Hide success message after 5 seconds
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 5000);
     } catch (error) {
       console.error(error);
       alert("Failed to create property. Please try again.");
@@ -86,6 +95,35 @@ const PropertyForm = ({ initialValues, onSubmit }) => {
           Fill in the information to list your property
         </p>
       </div>
+
+      {/* Success Message - Centered Button */}
+      {showSuccess && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 shadow-xl">
+            <div className="text-center">
+              <div className="flex justify-center mb-4">
+                <img
+                  src="https://img.icons8.com/fluency/96/checkmark.png"
+                  alt="Success"
+                  className="h-16 w-16"
+                />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">
+                Success!
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Your property has been created successfully.
+              </p>
+              <CustomButton
+                onClick={() => setShowSuccess(false)}
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all"
+              >
+                Property created successfully!
+              </CustomButton>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Formik
         initialValues={initialValues}
@@ -282,7 +320,7 @@ const PropertyForm = ({ initialValues, onSubmit }) => {
                     className="mt-1 text-sm text-red-600"
                   />
                 </div>
-                {/* emities */}
+                {/* amenities */}
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700">
                     Amenities
