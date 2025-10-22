@@ -2,12 +2,11 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import AgentRegisterForm from '../../components/forms/AgentRegisterForm';
-import { register } from '../../services/authService';
+import { registerAgent } from '../../services/authService'; // ✅ FIXED IMPORT
 import { AuthContext } from '../../contexts/AuthContext';
 
 const AgentRegister = () => {
   const navigate = useNavigate();
-  const { signIn } = useContext(AuthContext);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -49,73 +48,75 @@ const AgentRegister = () => {
     return () => clearInterval(interval);
   }, [propertyImages.length]);
 
-  const handleSubmit = async (values) => {
-    try {
-      setError(null);
-      setSuccess(null);
+  // In your AgentRegister.js, update the handleSubmit function:
+const handleSubmit = async (values) => {
+  try {
+    setError(null);
+    setSuccess(null);
+    
+    console.log("Agent form values:", values);
+    
+    // Prepare the data for agent registration
+    const agentData = {
+      name: values.name,
+      email: values.email,
+      password: values.password,
+      phone: values.phone,
+      adharNumber: values.adharNumber,
+      experienceYears: values.experienceYears,
+      agencyName: values.agencyName,
+      address: values.address,
+      availableTimes: values.availableTimes,
+      profileImage: values.profileImage
+    };
+    
+    console.log("Submitting agent registration with:", agentData);
+    
+    // ✅ Use registerAgent instead of register
+    const registerResponse = await registerAgent(agentData);
+    console.log("Agent registration response:", registerResponse);
+    
+    // Show success message and redirect to login
+    setSuccess('Agent registration successful! Please log in with your new account.');
+    
+    // Redirect to login page after a short delay
+    setTimeout(() => {
+      navigate('/login');
+    }, 2000);
+    
+  } catch (error) {
+    console.error('Agent registration error:', error);
+    
+    // Enhanced error handling
+    if (error.response) {
+      console.error('Error data:', error.response.data);
+      console.error('Error status:', error.response.status);
       
-      console.log("Agent form values:", values);
-      
-      // Prepare the data for the API call
-      const registrationData = {
-        name: values.name,
-        email: values.email,
-        password: values.password,
-        phone: values.phone,
-        role: values.role,
-        licenseNumber: values.licenseNumber,
-        agency: values.agency,
-        experience: values.experience
-      };
-      
-      console.log("Submitting agent registration with:", registrationData);
-      
-      // Register the agent
-      const registerResponse = await register(registrationData);
-      console.log("Agent registration response:", registerResponse);
-      
-      // Show success message and redirect to login
-      setSuccess('Agent registration successful! Please log in with your new account.');
-      
-      // Redirect to login page after a short delay
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
-      
-    } catch (error) {
-      console.error('Agent registration error:', error);
-      
-      // Enhanced error handling
-      if (error.response) {
-        console.error('Error data:', error.response.data);
-        console.error('Error status:', error.response.status);
+      if (error.response.status === 400) {
+        const errorData = error.response.data;
+        const errorMessage = errorData.message || errorData.error || 'Invalid registration data';
         
-        if (error.response.status === 400) {
-          const errorData = error.response.data;
-          const errorMessage = errorData.message || errorData.error || 'Invalid registration data';
-          
-          if (errorMessage.includes('Email is already used') || 
-              errorMessage.includes('email already exists') || 
-              errorMessage.includes('email is already registered')) {
-            setError('This email is already registered. Please use a different email or try logging in.');
-          } else if (errorMessage.includes('License is already used') || 
-                    errorMessage.includes('license already exists')) {
-            setError('This license number is already registered. Please use a different license number.');
-          } else {
-            setError(errorMessage);
-          }
+        if (errorMessage.includes('Aadhaar number already exists')) {
+          setError('This Aadhaar number is already registered. Please use a different Aadhaar number.');
+        } else if (errorMessage.includes('email already exists')) {
+          setError('This email is already registered. Please use a different email or try logging in.');
         } else {
-          setError(error.response.data.message || error.response.data.error || 'An error occurred during registration. Please try again.');
+          setError(errorMessage);
         }
-      } else if (error.request) {
-        console.error('Error request:', error.request);
-        setError('No response from server. Please check your internet connection.');
+      } else if (error.response.status === 500) {
+        setError('Server error. Please try again later.');
       } else {
-        console.error('Error message:', error.message);
-        setError('An error occurred during registration. Please try again.');
+        setError(error.response.data.message || 'An error occurred during registration. Please try again.');
       }
+    } else if (error.request) {
+      console.error('Error request:', error.request);
+      setError('No response from server. Please check your internet connection and make sure all services are running.');
+    } else {
+      console.error('Error message:', error.message);
+      setError('An error occurred during registration. Please try again.');
     }
-  };
+  }
+};
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
