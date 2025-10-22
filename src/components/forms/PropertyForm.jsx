@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { propertySchema } from "../../utils/validationSchemas";
@@ -7,6 +8,7 @@ const PropertyForm = ({ initialValues, onSubmit }) => {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [documentPreviews, setDocumentPreviews] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   // Cleanup object URLs to prevent memory leaks
   useEffect(() => {
@@ -58,6 +60,7 @@ const PropertyForm = ({ initialValues, onSubmit }) => {
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     setIsSubmitting(true);
+    setShowSuccess(false);
     try {
       await onSubmit(values);
       resetForm();
@@ -68,7 +71,13 @@ const PropertyForm = ({ initialValues, onSubmit }) => {
       setImagePreviews([]);
       setDocumentPreviews([]);
 
-      alert("Property created successfully!");
+      // Show success message
+      setShowSuccess(true);
+      
+      // Hide success message after 5 seconds
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 5000);
     } catch (error) {
       console.error(error);
       alert("Failed to create property. Please try again.");
@@ -86,6 +95,35 @@ const PropertyForm = ({ initialValues, onSubmit }) => {
           Fill in the information to list your property
         </p>
       </div>
+
+      {/* Success Message - Centered Button */}
+      {showSuccess && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 shadow-xl">
+            <div className="text-center">
+              <div className="flex justify-center mb-4">
+                <img
+                  src="https://img.icons8.com/fluency/96/checkmark.png"
+                  alt="Success"
+                  className="h-16 w-16"
+                />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">
+                Success!
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Your property has been created successfully.
+              </p>
+              <CustomButton
+                onClick={() => setShowSuccess(false)}
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all"
+              >
+                Property created successfully!
+              </CustomButton>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Formik
         initialValues={initialValues}
@@ -164,101 +202,178 @@ const PropertyForm = ({ initialValues, onSubmit }) => {
 
               {/* Property Details */}
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                {/* Price Field */}
-                <div>
-                  <label
-                    htmlFor="price"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Price (₹)
-                  </label>
-                  <div className="relative rounded-md">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="text-gray-500 sm:text-sm">₹</span>
-                    </div>
-                    <Field
-                      id="price"
-                      name="price"
-                      type="number"
-                      placeholder="0.00"
-                      className="block w-full pl-7 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-[#16A085] focus:border-[#16A085] transition-colors"
-                    />
-                  </div>
-                  <ErrorMessage
-                    name="price"
-                    component="div"
-                    className="mt-1 text-sm text-red-600"
-                  />
-                </div>
+               {/* Price Field */}
+
+
+<div>
+  <label
+    htmlFor="price"
+    className="block text-sm font-medium text-gray-700 mb-1"
+  >
+    Price (₹)
+  </label>
+  <div className="relative rounded-md">
+    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+      <span className="text-gray-500 sm:text-sm">₹</span>
+    </div>
+    <Field name="price">
+      {({ field, form }) => (
+        <input
+          {...field}
+          id="price"
+          type="number"
+          min="0"
+          step="0.01"
+          placeholder=""  // 👈 empty by default (no 0.00)
+          className="block w-full pl-7 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-[#16A085] focus:border-[#16A085] transition-colors"
+          onChange={(e) => {
+            let value = e.target.value;
+
+            // Prevent negative numbers
+            if (value < 0) {
+              value = "";
+            }
+
+            // Remove leading zeros like 00023 → 23
+            if (value.length > 1 && value[0] === "0" && !value.includes(".")) {
+              value = value.replace(/^0+/, "");
+            }
+
+            form.setFieldValue("price", value);
+          }}
+        />
+      )}
+    </Field>
+  </div>
+  <ErrorMessage
+    name="price"
+    component="div"
+    className="mt-1 text-sm text-red-600"
+  />
+</div>
+
 
                 {/* Area Field */}
-                <div>
-                  <label
-                    htmlFor="area"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Area (sq ft)
-                  </label>
-                  <Field
-                    id="area"
-                    name="area"
-                    type="number"
-                    placeholder="0"
-                    min="0"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-[#16A085] focus:border-[#16A085] transition-colors"
-                  />
-                  <ErrorMessage
-                    name="area"
-                    component="div"
-                    className="mt-1 text-sm text-red-600"
-                  />
-                </div>
+<div>
+  <label
+    htmlFor="area"
+    className="block text-sm font-medium text-gray-700 mb-1"
+  >
+    Area (sq ft)
+  </label>
+  <Field name="area">
+    {({ field, form }) => (
+      <input
+        {...field}
+        id="area"
+        type="number"
+        min="0"
+        placeholder=""
+        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-[#16A085] focus:border-[#16A085] transition-colors"
+        onChange={(e) => {
+          let value = e.target.value;
+
+          // Prevent negative numbers
+          if (value < 0) value = "";
+
+          // Remove leading zeros (e.g., 00045 -> 45)
+          if (value.length > 1 && value[0] === "0" && !value.includes(".")) {
+            value = value.replace(/^0+/, "");
+          }
+
+          form.setFieldValue("area", value);
+        }}
+      />
+    )}
+  </Field>
+  <ErrorMessage
+    name="area"
+    component="div"
+    className="mt-1 text-sm text-red-600"
+  />
+</div>
+
 
                 {/* Bedrooms Field */}
-                <div>
-                  <label
-                    htmlFor="bedrooms"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Bedrooms
-                  </label>
-                  <Field
-                    id="bedrooms"
-                    name="bedrooms"
-                    type="number"
-                    placeholder="0"
-                    min="0"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-[#16A085] focus:border-[#16A085] transition-colors"
-                  />
-                  <ErrorMessage
-                    name="bedrooms"
-                    component="div"
-                    className="mt-1 text-sm text-red-600"
-                  />
-                </div>
+<div>
+  <label
+    htmlFor="bedrooms"
+    className="block text-sm font-medium text-gray-700 mb-1"
+  >
+    Bedrooms
+  </label>
+  <Field name="bedrooms">
+    {({ field, form }) => (
+      <input
+        {...field}
+        id="bedrooms"
+        type="number"
+        min="0"
+        placeholder=""
+        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-[#16A085] focus:border-[#16A085] transition-colors"
+        onChange={(e) => {
+          let value = e.target.value;
 
-                {/* Bathrooms Field */}
-                <div>
-                  <label
-                    htmlFor="bathrooms"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Bathrooms
-                  </label>
-                  <Field
-                    id="bathrooms"
-                    name="bathrooms"
-                    type="number"
-                    placeholder="0"
-                    min="0"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-[#16A085] focus:border-[#16A085] transition-colors"
-                  />
-                  <ErrorMessage
-                    name="bathrooms"
-                    component="div"
-                    className="mt-1 text-sm text-red-600"
-                  />
-                </div>
+          // Prevent negative numbers
+          if (value < 0) value = "";
+
+          // Remove leading zeros (00045 → 45)
+          if (value.length > 1 && value[0] === "0" && !value.includes(".")) {
+            value = value.replace(/^0+/, "");
+          }
+
+          form.setFieldValue("bedrooms", value);
+        }}
+      />
+    )}
+  </Field>
+  <ErrorMessage
+    name="bedrooms"
+    component="div"
+    className="mt-1 text-sm text-red-600"
+  />
+</div>
+
+{/* Bathrooms Field */}
+<div>
+  <label
+    htmlFor="bathrooms"
+    className="block text-sm font-medium text-gray-700 mb-1"
+  >
+    Bathrooms
+  </label>
+  <Field name="bathrooms">
+    {({ field, form }) => (
+      <input
+        {...field}
+        id="bathrooms"
+        type="number"
+        min="0"
+        placeholder=""
+        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-[#16A085] focus:border-[#16A085] transition-colors"
+        onChange={(e) => {
+          let value = e.target.value;
+
+          // Prevent negative numbers
+          if (value < 0) value = "";
+
+          // Remove leading zeros (00045 → 45)
+          if (value.length > 1 && value[0] === "0" && !value.includes(".")) {
+            value = value.replace(/^0+/, "");
+          }
+
+          form.setFieldValue("bathrooms", value);
+        }}
+      />
+    )}
+  </Field>
+  <ErrorMessage
+    name="bathrooms"
+    component="div"
+    className="mt-1 text-sm text-red-600"
+  />
+</div>
+
 
                 {/* Balcony Field */}
                 <div>
@@ -282,7 +397,7 @@ const PropertyForm = ({ initialValues, onSubmit }) => {
                     className="mt-1 text-sm text-red-600"
                   />
                 </div>
-                {/* emities */}
+                {/* amenities */}
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700">
                     Amenities
@@ -393,18 +508,6 @@ const PropertyForm = ({ initialValues, onSubmit }) => {
                 />
               </div>
 
-              {/* Rented Status */}
-              {/* <div className="flex items-center">
-                <Field
-                  id="rented"
-                  name="rented"
-                  type="checkbox"
-                  className="h-4 w-4 text-[#16A085] focus:ring-[#16A085] border-gray-300 rounded"
-                />
-                <label htmlFor="rented" className="ml-2 block text-sm text-gray-700">
-                  Already Rented
-                </label>
-              </div> */}
 
               {/* Rented By Field - Only show if rented is true */}
               {values.rented && (

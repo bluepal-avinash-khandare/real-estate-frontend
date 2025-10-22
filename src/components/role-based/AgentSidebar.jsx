@@ -132,13 +132,13 @@ const AgentSidebar = ({ isExpanded }) => {
 
   const menuItems = [
     { path: '/dashboard', icon: 'dashboard', label: 'Dashboard' },
-    { path: '/properties', icon: 'properties', label: 'Properties' },
+    // { path: '/properties', icon: 'properties', label: 'Properties' },
     { path: '/agent-properties', icon: 'my-properties', label: 'My Properties' },
     { path: '/create-property', icon: 'add-property', label: 'Create Property' },
     { path: '/appointments-requests', icon: 'appointments', label: 'Appointments' },
-    { path: '/appointments-report', icon: 'report', label: 'Appointments Report' },
-    { path: '/leads', icon: 'leads', label: 'Leads' },
-    { path: '/start-chat', icon: 'messages', label: 'Messages' },
+    // { path: '/appointments-report', icon: 'report', label: 'Appointments Report' },
+    // { path: '/leads', icon: 'leads', label: 'Leads' },
+    // { path: '/start-chat', icon: 'messages', label: 'Messages' },
     { path: '/profile', icon: 'profile', label: 'Profile' },
   ];
 
@@ -211,7 +211,7 @@ const AgentSidebar = ({ isExpanded }) => {
         </Link>
       ))}
       
-      <div className="pt-4 mt-4 border-t border-gray-700">
+      {/* <div className="pt-4 mt-4 border-t border-gray-700">
         <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
           Tools
         </div>
@@ -242,7 +242,7 @@ const AgentSidebar = ({ isExpanded }) => {
             <span className="ml-3 font-medium">Marketing</span>
           )}
         </Link>
-      </div>
+      </div> */}
     </nav>
   );
 };
