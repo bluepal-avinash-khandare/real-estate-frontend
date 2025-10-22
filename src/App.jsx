@@ -54,6 +54,9 @@ import AgentRegister from './pages/auth/AgentRegister';
 import About from './pages/about/About';
 import Contact from './pages/contact/Contact';
 
+import SubscriptionManagement from './pages/subscriptions/SubscriptionManagement';
+
+
 // Create a separate ProtectedRoute component
 const ProtectedRoute = ({ children, roles }) => {
   const { isAuthenticated, user } = useContext(AuthContext);
@@ -364,6 +367,7 @@ const App = () => {
                 <UpdateUser />
               </ProtectedRoute>
             }
+            
           />
           <Route
             path="/users-report"
@@ -372,7 +376,17 @@ const App = () => {
                 <UsersReport />
               </ProtectedRoute>
             }
+            
           />
+          <Route
+            path="/users-report"
+            element={
+              <ProtectedRoute roles={['ADMIN']}>
+                <UsersReport />
+              </ProtectedRoute>
+            }
+          />      <Route path="/subscriptions" element={<SubscriptionManagement />} />
+
           
           {/* Shared Routes */}
           <Route
